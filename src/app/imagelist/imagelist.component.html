@@ -1,0 +1,23 @@
+<div *ngIf="loading">Loading...</div>
+<div *ngIf="error">{{ error }}</div>
+<table *ngIf="!loading && images.length">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Original Filename</th>
+            <th>Entity ID</th>
+            <th>Uploaded At</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let img of images">
+            <td>
+                <img [src]="'http://localhost:3000/' + img.file_path" width="80" alt="preview" />
+            </td>
+            <td>{{ img.original_filename }}</td>
+            <td>{{ img.entity_id }}</td>
+            <td>{{ img.uploaded_at | date:'short' }}</td>
+        </tr>
+    </tbody>
+</table>
+<div *ngIf="!loading && !images.length">No images uploaded yet.</div>

@@ -1,0 +1,6 @@
+<h2>Upload Document Image</h2>
+<form (submit)="onUpload($event)">
+    <input type="file" (change)="onFileSelected($event)" />
+    <button type="submit" [disabled]="!selectedFile">Upload</button>
+</form>
+<p *ngIf="uploadMessage">{{ uploadMessage }}</p>
