@@ -1,0 +1,11 @@
+<h2>Mass Upload Documents from Local Folder</h2>
+<form (submit)="onUploadAll($event)">
+    <input type="file" (change)="onFilesSelected($event)" webkitdirectory multiple />
+    <button type="submit" [disabled]="!selectedFiles.length || isUploading">Upload All</button>
+</form>
+
+<ul>
+    <li *ngFor="let file of selectedFiles; let i = index">
+        {{ file.webkitRelativePath || file.name }} - {{ uploadStatus[i] || 'Not uploaded' }}
+    </li>
+</ul>
