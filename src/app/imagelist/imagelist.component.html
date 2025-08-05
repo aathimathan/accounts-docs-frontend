@@ -1,23 +1,122 @@
-<div *ngIf="loading">Loading...</div>
-<div *ngIf="error">{{ error }}</div>
-<table *ngIf="!loading && images.length">
-    <thead>
-        <tr>
-            <th>Image</th>
-            <th>Original Filename</th>
-            <th>Entity ID</th>
-            <th>Uploaded At</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let img of images">
-            <td>
-                <img [src]="'http://localhost:3000/' + img.file_path" width="80" alt="preview" />
-            </td>
-            <td>{{ img.original_filename }}</td>
-            <td>{{ img.entity_id }}</td>
-            <td>{{ img.uploaded_at | date:'short' }}</td>
-        </tr>
-    </tbody>
-</table>
-<div *ngIf="!loading && !images.length">No images uploaded yet.</div>
+<div style="margin-bottom: 18px;">
+    <label for="filter-date">Filter by Uploaded Date:</label>
+    <input type="date" id="filter-date" [value]="filterDate" (change)="onDateChange($event)" />
+    <button *ngIf="filterDate" (click)="clearFilter()">Clear</button>
+</div>
+
+<div class="image-list-layout">
+    <!-- Left Panel: Table -->
+    <div class="image-table-panel" tabindex="0" (keydown)="onTableKeydown($event)">
+        <table>
+            <thead>
+                <tr>
+                    <th>Original Filename</th>
+                    <th>Entity ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let img of images" [class.selected]="img === selectedImage" (click)="onSelectImage(img)">
+                    <td>{{ img.original_filename }}</td>
+                    <td>{{ img.entity_id }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div *ngIf="!images.length && !loading">No images found.</div>
+    </div>
+
+    <!-- Right Panel: Detail -->
+    <div class="image-detail-panel" *ngIf="selectedImage">
+        <div class="image-preview-container">
+            <img [src]="'http://localhost:3000/' + selectedImage.file_path" [alt]="selectedImage.original_filename"
+                class="image-preview" />
+            <button class="enlarge-btn" (click)="enlargeImage()" type="button" aria-label="Enlarge">
+                <svg width="46" height="46" viewBox="0 0 48 48" fill="none">
+                    <defs>
+                        <radialGradient id="glass3d" cx="50%" cy="50%" r="70%">
+                            <stop offset="0%" stop-color="#fff" stop-opacity="0.93" />
+                            <stop offset="65%" stop-color="#e9f3ff" stop-opacity="0.66" />
+                            <stop offset="100%" stop-color="#a4b1c3" stop-opacity="0.38" />
+                        </radialGradient>
+                        <linearGradient id="handle3d" x1="1" y1="1" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#616770" />
+                            <stop offset="100%" stop-color="#b3b6bc" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Make the glass as large as possible in the 48x48 box -->
+                    <circle cx="22" cy="22" r="17" fill="url(#glass3d)" stroke="#b6bed9" stroke-width="3" />
+                    <ellipse cx="18" cy="16" rx="7" ry="10" fill="#fff" opacity="0.15" />
+                    <rect x="33" y="33" width="13" height="7" rx="3.2" fill="url(#handle3d)"
+                        transform="rotate(45 33 33)" />
+                    <circle cx="22" cy="22" r="13" fill="none" stroke="#8890a6" stroke-width="2.2" />
+                </svg>
+            </button>
+        </div>
+        <!-- Modal for enlarge view -->
+        <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+            <img [src]="'http://localhost:3000/' + selectedImage.file_path" [alt]="selectedImage.original_filename"
+                class="modal-image" (click)="$event.stopPropagation()" />
+            <button class="close-btn" (click)="closeModal()" type="button" aria-label="Close">
+                <svg width="28" height="28" viewBox="0 0 28 28" stroke="#222" stroke-width="3" fill="none">
+                    <line x1="8" y1="8" x2="20" y2="20" />
+                    <line x1="20" y1="8" x2="8" y2="20" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="image-data-panel">
+            <h3>Extracted Data</h3>
+            <!-- Extracted Data -->
+            <div class="extracted-table-container" *ngIf="imageData; else noData">
+                <table class="extracted-table">
+                    <tr>
+                        <td><b>Invoice #</b></td>
+                        <td>{{ imageData.InvoiceNumber }}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Date</b></td>
+                        <td>{{ imageData.InvoiceDate }}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Vendor</b></td>
+                        <td>{{ imageData.Vendor }}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Vendor Address</b></td>
+                        <td>{{ imageData.VendorAddress }}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Total</b></td>
+                        <td>{{ imageData.Total }}</td>
+                    </tr>
+                </table>
+                <div *ngIf="imageData.Items.length">
+                    <h4>Items</h4>
+                    <table class="extracted-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of imageData.Items">
+                                <td>{{ item.Description }}</td>
+                                <td>{{ item.Quantity }}</td>
+                                <td>{{ item.UnitPrice }}</td>
+                                <td>{{ item.Amount }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <ng-template #noData>
+                <div>No data extracted.</div>
+            </ng-template>
+
+            <div *ngIf="!imageData">No data extracted.</div>
+        </div>
+
+    </div>
+</div>
