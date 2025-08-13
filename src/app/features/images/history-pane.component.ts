@@ -6,8 +6,9 @@ import { AuditEntry } from '../../shared/models/image';
   standalone: true,
   selector: 'app-history-pane',
   imports: [CommonModule],
+  host: { class: 'block h-full' },
   template: `
-  <div class="p-3">
+  <div class="h-full p-3 overflow-auto">
     <ul class="text-sm divide-y">
       <li *ngFor="let a of audit" class="py-2">
         <div class="font-medium">{{a.action}}</div>

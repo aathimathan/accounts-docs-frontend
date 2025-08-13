@@ -1,3 +1,22 @@
+/* Global scroll policy: no horizontal scroll */
+html, body
+  overflow-x: hidden
+  height: 100%
+
+/* Utility to force a vertical-only scroll container */
+.vscroll
+  overflow-y: auto
+  overflow-x: hidden
+
+/* Inputs and chips consistent styling (existing project patterns) */
+.input
+  @apply border rounded px-2 py-1 text-sm bg-white
+
+.chip
+  @apply inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700
+
+.tab-active
+  @apply bg-gray-200
 @tailwind base
 @tailwind components
 @tailwind utilities
@@ -5,6 +24,18 @@
 @layer components
   .input
     @apply border rounded px-2 py-1 text-sm
+  .chip
+    @apply inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700
+  .badge
+    @apply text-xs px-2 py-0.5 rounded-full
+  .badge-ready
+    @apply bg-green-100 text-green-800
+  .badge-error
+    @apply bg-red-100 text-red-800
+  .badge-processing
+    @apply bg-indigo-100 text-indigo-800
+  .tab-active
+    @apply bg-gray-200
 
 body
   background: #f8f9fb

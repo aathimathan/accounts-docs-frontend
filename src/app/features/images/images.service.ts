@@ -18,4 +18,8 @@ export class ImagesService {
     saveNormalized(id: string, normalized: NormalizedDoc) {
         return this.http.patch<void>(`/images/${id}/normalized`, normalized);
     }
+
+    reanalyze(id: string) {
+        return this.http.post<ImageBundle>(`/images/${id}/reanalyze`, {});
+    }
 }

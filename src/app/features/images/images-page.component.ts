@@ -1,4 +1,5 @@
 import { Component, effect, inject, signal } from '@angular/core';
+import { finalize } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { ImagesService } from './images.service';
 import { ImageListComponent } from './image-list.component';
@@ -9,11 +10,13 @@ import { ImageRow } from '../../shared/models/image';
   standalone: true,
   selector: 'app-images-page',
   imports: [CommonModule, ImageListComponent, ImageDetailComponent],
+  host: { class: 'block h-full' },
   template: `
-  <div class="h-full overflow-hidden grid grid-cols-[minmax(360px,520px)_1fr]">
+  <div class="h-full overflow-hidden grid grid-cols-[minmax(360px,520px)_1fr] min-w-0">
     <app-image-list class="border-r"
       [rows]="rows()"
       [total]="total()"
+  [loading]="loading()"
       (select)="onSelect($event)"
       (filtersChange)="onFilter($event)">
     </app-image-list>
@@ -31,6 +34,7 @@ export class ImagesPageComponent {
   rows = signal<ImageRow[]>([]);
   total = signal<number>(0);
   selectedId = signal<string | null>(null);
+  loading = signal<boolean>(false);
 
   // basic filters
   params = signal<{ date?: string; doc_type?: string; q?: string; status?: string; page: number; size: number }>({
@@ -41,7 +45,8 @@ export class ImagesPageComponent {
     // load whenever filters change
     effect(() => {
       const p = this.params();
-      this.api.list(p).subscribe(({ items, total }) => {
+      this.loading.set(true);
+      this.api.list(p).pipe(finalize(() => this.loading.set(false))).subscribe(({ items, total }) => {
         this.rows.set(items);
         this.total.set(total);
         // auto-select first row if none selected

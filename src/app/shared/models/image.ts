@@ -26,6 +26,9 @@ export interface NormalizedDoc {
     currency?: string;
     customer?: string;
     lines?: NormalizedLine[];
+    // Some heuristic extractors may use `items` instead of `lines`.
+    // Keep this optional alias to support existing data without migration.
+    items?: NormalizedLine[];
     meta?: Record<string, any>;
 }
 

@@ -5,5 +5,5 @@ import { HttpService } from '../../shared/services/http.service';
 export class QbService {
     private http = inject(HttpService);
     status() { return this.http.get<{ connected: boolean; company?: string }>('/qb/status'); }
-    connect() { return this.http.post('/auth/qb', {}); } // launch flow server-side
+    connect() { return this.http.get<void>('/auth/qb'); } // triggers redirect via backend
 }
