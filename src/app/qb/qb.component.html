@@ -1,0 +1,9 @@
+<p>qb works!</p>
+<h2>QuickBooks Integration</h2>
+<button (click)="connectQuickBooks()">Connect to QuickBooks</button>
+<button (click)="createInvoice()" [disabled]="!isConnected">Create Sample Invoice</button>
+
+<div *ngIf="result">
+    <h4>Result:</h4>
+    <pre>{{ result | json }}</pre>
+</div>

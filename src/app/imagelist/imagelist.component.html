@@ -27,8 +27,15 @@
     <!-- Right Panel: Detail -->
     <div class="image-detail-panel" *ngIf="selectedImage">
         <div class="image-preview-container">
-            <img [src]="'http://localhost:3000/' + selectedImage.file_path" [alt]="selectedImage.original_filename"
-                class="image-preview" />
+            <ng-container *ngIf="!isPdfPath(selectedImage?.file_path); else pdfTpl">
+                <img class="image-preview" [src]="previewUrl(selectedImage)" [alt]="selectedImage?.original_filename" />
+            </ng-container>
+
+            <ng-template #pdfTpl>
+                <object class="pdf-preview" [data]="previewUrl(selectedImage)" type="application/pdf">
+                    <a [href]="previewUrl(selectedImage)" target="_blank">Open PDF</a>
+                </object>
+            </ng-template>
             <button class="enlarge-btn" (click)="enlargeImage()" type="button" aria-label="Enlarge">
                 <svg width="46" height="46" viewBox="0 0 48 48" fill="none">
                     <defs>

@@ -45,43 +45,58 @@ export class ImagelistComponent implements OnInit {
       });
   }
 
+
+  previewUrl(img: any) {
+    const p = (img?.file_path || '').replace(/\\/g, '/');
+    return `http://localhost:3000/${p}`;
+  }
+  isPdfPath(p?: string) { return /\.pdf$/i.test(p || ''); }
+
+
   onSelectImage(img: any) {
     this.selectedImage = img;
     this.selectedIndex = this.images.indexOf(img);
-    // Fetch extracted data for image
+
     this.http.get<any>(`http://localhost:3000/api/images/${img.id}`)
       .subscribe({
         next: (res) => {
-          //this.imageData = res.extracted_json || null;
-          this.imageData = this.formatInvoiceData(JSON.parse(res.extracted_json || null));
-          //alert(JSON.stringify(res.extracted_json));
+          const h = typeof res.heuristic_json === 'string'
+            ? (res.heuristic_json ? JSON.parse(res.heuristic_json) : null)
+            : (res.heuristic_json ?? null);
+
+          const e = typeof res.extracted_json === 'string'
+            ? (res.extracted_json ? JSON.parse(res.extracted_json) : null)
+            : (res.extracted_json ?? null);
+
+          this.imageData = this.formatInvoiceData(h) || this.formatInvoiceData(e) || null;
         },
-        error: () => {
-          this.imageData = null;
-        }
+        error: () => { this.imageData = null; }
       });
   }
 
-
   formatInvoiceData(data: any): any {
-    if (!data || !data.OCR || !data.OCR.analyzeResult) return null;
-    const doc = data.OCR.analyzeResult.documents?.[0]?.fields || {};
+    if (!data) return null;
 
-    // Extract fields
+    // accept both camelCase and PascalCase; map to template’s PascalCase
+    const itemsSrc = data.items || data.Items || [];
+    const Items = Array.isArray(itemsSrc) ? itemsSrc.map((x: any) => ({
+      Description: x.description ?? x.Description ?? '',
+      Quantity: x.qty ?? x.Quantity ?? '',
+      UnitPrice: x.unitPrice ?? x.UnitPrice ?? '',
+      Amount: x.amount ?? x.Amount ?? ''
+    })) : [];
+
     return {
-      InvoiceNumber: doc.InvoiceId?.valueString ?? '',
-      InvoiceDate: doc.InvoiceDate?.valueDate ?? '',
-      Vendor: doc.VendorName?.valueString ?? '',
-      VendorAddress: doc.VendorAddress?.content ?? '',
-      Total: doc.InvoiceTotal?.valueCurrency?.amount ?? '',
-      Items: (doc.Items?.valueArray ?? []).map((item: any) => ({
-        Description: item.valueObject?.Description?.valueString ?? '',
-        Quantity: item.valueObject?.Quantity?.valueNumber ?? '',
-        UnitPrice: item.valueObject?.UnitPrice?.valueCurrency?.amount ?? '',
-        Amount: item.valueObject?.Amount?.valueCurrency?.amount ?? ''
-      }))
+      InvoiceNumber: data.invoiceNumber ?? data.InvoiceNumber ?? '',
+      InvoiceDate: data.invoiceDate ?? data.InvoiceDate ?? '',
+      Vendor: data.vendor ?? data.Vendor ?? '',
+      VendorAddress: data.vendorAddress ?? data.VendorAddress ?? '',
+      Total: data.total ?? data.Total ?? '',
+      Items
     };
   }
+
+
 
   onDateChange(event: Event) {
     this.filterDate = (event.target as HTMLInputElement).value;

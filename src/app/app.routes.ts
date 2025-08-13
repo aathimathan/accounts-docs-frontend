@@ -1,20 +1,11 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-    {
-        path: 'upload',
-        loadComponent: () =>
-            import('./upload/upload.component').then(m => m.UploadComponent)
-    },
-    {
-        path: 'mass-upload',
-        loadComponent: () =>
-            import('./mass-upload/mass-upload.component').then(m => m.MassUploadComponent)
-    },
-    {
-        path: 'images',
-        loadComponent: () =>
-            import('./imagelist/imagelist.component').then(m => m.ImagelistComponent)
-    },
-    { path: '', redirectTo: '/upload', pathMatch: 'full' }
+    { path: '', redirectTo: 'images', pathMatch: 'full' },
+    { path: 'dashboard', loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES) },
+    { path: 'upload', loadChildren: () => import('./features/upload/upload.routes').then(m => m.UPLOAD_ROUTES) },
+    { path: 'exports', loadChildren: () => import('./features/exports/exports.routes').then(m => m.EXPORTS_ROUTES) },
+    { path: 'qb', loadChildren: () => import('./features/qb/qb.routes').then(m => m.QB_ROUTES) },
+    { path: 'images', loadChildren: () => import('./features/images/images.routes').then(m => m.IMAGES_ROUTES) },
+    { path: '**', redirectTo: 'images' }
 ];

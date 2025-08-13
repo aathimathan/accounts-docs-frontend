@@ -1,3 +1,11 @@
+@tailwind base
+@tailwind components
+@tailwind utilities
+
+@layer components
+  .input
+    @apply border rounded px-2 py-1 text-sm
+
 body
   background: #f8f9fb
   color: #18181b
@@ -174,8 +182,9 @@ img
   height: 70vh
   overflow-y: auto
   overflow-x: hidden
+  scrollbar-width: thin
+  scrollbar-color: #e0e0e0 transparent
 
-  // Custom scrollbar for table panel only
   &::-webkit-scrollbar
     width: 6px
     background: transparent
@@ -183,9 +192,6 @@ img
   &::-webkit-scrollbar-thumb
     background: #e0e0e0
     border-radius: 3px
-
-    scrollbar-width: thin
-    scrollbar-color: #e0e0e0 transparent
 
   table
     width: 100%
@@ -315,8 +321,9 @@ img
   overflow-y: auto
   overflow-x: auto
   width: 100%
+  scrollbar-width: thin
+  scrollbar-color: #e5e7eb #f1f5f9
 
-  // Custom scrollbar for this container
   &::-webkit-scrollbar
     width: 5px
     background: #f1f5f9
@@ -324,9 +331,6 @@ img
   &::-webkit-scrollbar-thumb
     background: #e5e7eb
     border-radius: 5px
-
-    scrollbar-width: thin
-    scrollbar-color: #e5e7eb #f1f5f9
 
 .extracted-table
   width: 100%

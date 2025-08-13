@@ -1,31 +1,23 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
-  selector: 'app-root',
   standalone: true,
-  imports: [RouterModule],
+  selector: 'app-root',
+  imports: [RouterOutlet],
   template: `
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="sidebar-title">Accounts</div>
-        <nav>
-          <ul>
-            <li><a routerLink="/upload" routerLinkActive="active">Upload</a></li>
-            <li><a routerLink="/mass-upload" routerLinkActive="active">Mass Upload</a></li>
-            <li><a routerLink="/images" routerLinkActive="active">Images</a></li>
-          </ul>
-        </nav>
-      </aside>
-      <main class="main">
-        <div class="card">
-          <router-outlet></router-outlet>
-        </div>
-        <footer class="footer">
-            iPower ©2025. All rights reserved.
-        </footer>
-      </main>
-    </div>
+  <div class="h-screen w-screen grid grid-rows-[auto,1fr] bg-gray-50">
+    <header class="flex items-center justify-between px-4 h-12 border-b bg-white">
+      <div class="font-semibold">Docs Control Room</div>
+      <nav class="flex gap-3 text-sm">
+        <a routerLink="/images" class="hover:underline">Images</a>
+        <a routerLink="/upload" class="hover:underline">Upload</a>
+        <a routerLink="/exports" class="hover:underline">Exports</a>
+        <a routerLink="/qb" class="hover:underline">QuickBooks</a>
+      </nav>
+    </header>
+    <router-outlet />
+  </div>
   `
 })
 export class AppComponent { }

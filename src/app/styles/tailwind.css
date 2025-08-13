@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* tokens */
+:root {
+    --ring: 0 0% 0%;
+}
+
+*:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--ring)/.2);
+}
+
+/* component-level utilities */
+@layer components {
+    .input {
+        @apply border rounded px-2 py-1 text-sm;
+    }
+}
