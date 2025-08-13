@@ -1,17 +1,25 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
     private http = inject(HttpClient);
-    // set your base here
-    private base = '/api';
+    private base = '/api'; // proxy points here
 
-    get<T>(url: string, params?: Record<string, any>) {
+    get<T>(path: string, params?: Record<string, any>): Observable<T> {
         let p = new HttpParams();
-        Object.entries(params ?? {}).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') p = p.set(k, v); });
-        return this.http.get<T>(this.base + url, { params: p });
+        Object.entries(params || {}).forEach(([k, v]) => {
+            if (v !== undefined && v !== null && v !== '') p = p.set(k, String(v));
+        });
+        return this.http.get<T>(`${this.base}${path}`, { params: p });
     }
-    post<T>(url: string, body?: any) { return this.http.post<T>(this.base + url, body); }
-    patch<T>(url: string, body?: any) { return this.http.patch<T>(this.base + url, body); }
+
+    post<T>(path: string, body: any): Observable<T> {
+        return this.http.post<T>(`${this.base}${path}`, body);
+    }
+
+    patch<T>(path: string, body: any): Observable<T> {
+        return this.http.patch<T>(`${this.base}${path}`, body);
+    }
 }

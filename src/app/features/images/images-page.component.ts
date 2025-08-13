@@ -6,11 +6,11 @@ import { ImageDetailComponent } from './image-detail.component';
 import { ImageRow } from '../../shared/models/image';
 
 @Component({
-    standalone: true,
-    selector: 'app-images-page',
-    imports: [CommonModule, ImageListComponent, ImageDetailComponent],
-    template: `
-  <div class="h-full grid grid-cols-[minmax(360px,520px)_1fr]">
+  standalone: true,
+  selector: 'app-images-page',
+  imports: [CommonModule, ImageListComponent, ImageDetailComponent],
+  template: `
+  <div class="h-full overflow-hidden grid grid-cols-[minmax(360px,520px)_1fr]">
     <app-image-list class="border-r"
       [rows]="rows()"
       [total]="total()"
@@ -20,28 +20,45 @@ import { ImageRow } from '../../shared/models/image';
 
     <app-image-detail
       [imageId]="selectedId()"
-      (exportQB)="exportQB($event)">
+      (exportQB)="onExport($event)">
     </app-image-detail>
   </div>
   `
 })
 export class ImagesPageComponent {
-    private api = inject(ImagesService);
+  private api = inject(ImagesService);
 
-    rows = signal<ImageRow[]>([]);
-    total = signal(0);
-    selectedId = signal<string | null>(null);
-    filters = signal<{ date?: string; doc_type?: string; q?: string; status?: string; page: number; size: number }>({ page: 1, size: 50 });
+  rows = signal<ImageRow[]>([]);
+  total = signal<number>(0);
+  selectedId = signal<string | null>(null);
 
-    constructor() {
-        effect(() => { this.fetch(); });
-    }
+  // basic filters
+  params = signal<{ date?: string; doc_type?: string; q?: string; status?: string; page: number; size: number }>({
+    page: 1, size: 50
+  });
 
-    fetch() {
-        this.api.list(this.filters()).subscribe(res => { this.rows.set(res.items); this.total.set(res.total); if (!this.selectedId() && res.items.length) this.selectedId.set(res.items[0].id); });
-    }
+  constructor() {
+    // load whenever filters change
+    effect(() => {
+      const p = this.params();
+      this.api.list(p).subscribe(({ items, total }) => {
+        this.rows.set(items);
+        this.total.set(total);
+        // auto-select first row if none selected
+        if (!this.selectedId() && items.length) this.selectedId.set(items[0].id);
+      });
+    });
+  }
 
-    onSelect(id: string) { this.selectedId.set(id); }
-    onFilter(f: any) { this.filters.set({ ...this.filters(), ...f, page: 1 }); }
-    exportQB(imageId: string) { /* handled in detail via service; keep for future global actions */ }
+  onFilter(patch: any) {
+    this.params.update(s => ({ ...s, page: 1, ...patch }));
+  }
+
+  onSelect(id: string) {
+    this.selectedId.set(id);
+  }
+
+  onExport(_: string) {
+    // optional: refresh export state or show toast
+  }
 }

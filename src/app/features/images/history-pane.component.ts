@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { AuditEntry } from '../../shared/models/image';
 
 @Component({
-    standalone: true,
-    selector: 'app-history-pane',
-    imports: [CommonModule],
-    template: `
+  standalone: true,
+  selector: 'app-history-pane',
+  imports: [CommonModule],
+  template: `
   <div class="p-3">
     <ul class="text-sm divide-y">
       <li *ngFor="let a of audit" class="py-2">
@@ -18,5 +18,5 @@ import { AuditEntry } from '../../shared/models/image';
   `
 })
 export class HistoryPaneComponent {
-    @Input() audit: AuditEntry[] = [];
+  @Input() audit: AuditEntry[] = [];
 }

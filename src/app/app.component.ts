@@ -1,23 +1,72 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, signal, effect } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { CommonModule, NgClass } from '@angular/common';
 
 @Component({
   standalone: true,
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, NgClass],
   template: `
-  <div class="h-screen w-screen grid grid-rows-[auto,1fr] bg-gray-50">
-    <header class="flex items-center justify-between px-4 h-12 border-b bg-white">
-      <div class="font-semibold">Docs Control Room</div>
-      <nav class="flex gap-3 text-sm">
-        <a routerLink="/images" class="hover:underline">Images</a>
-        <a routerLink="/upload" class="hover:underline">Upload</a>
-        <a routerLink="/exports" class="hover:underline">Exports</a>
-        <a routerLink="/qb" class="hover:underline">QuickBooks</a>
+  <div class="layout">
+    <aside class="sidebar" [ngClass]="{ 'collapsed': collapsed() }">
+      <div class="sidebar-title">Docs Control Room</div>
+
+      <nav>
+        <ul>
+          <li>
+            <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+              <span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" routerLink="/images" routerLinkActive="active">
+              <span class="nav-icon">🖼️</span><span class="nav-label">Images</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" routerLink="/upload" routerLinkActive="active">
+              <span class="nav-icon">⬆️</span><span class="nav-label">Upload</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" routerLink="/exports" routerLinkActive="active">
+              <span class="nav-icon">📤</span><span class="nav-label">Exports</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" routerLink="/qb" routerLinkActive="active">
+              <span class="nav-icon">🧾</span><span class="nav-label">QuickBooks</span>
+            </a>
+          </li>
+        </ul>
       </nav>
-    </header>
-    <router-outlet />
+
+      <button class="collapse-btn" type="button" (click)="toggle()">
+        {{ collapsed() ? '▶' : '◀' }}
+      </button>
+    </aside>
+
+    <main class="main">
+      <router-outlet />
+    </main>
   </div>
   `
 })
-export class AppComponent { }
+export class AppComponent {
+  collapsed = signal<boolean>(false);
+
+  constructor() {
+    const v = localStorage.getItem('sidebar.collapsed');
+    this.collapsed.set(v === '1');
+    effect(() => {
+      localStorage.setItem('sidebar.collapsed', this.collapsed() ? '1' : '0');
+    });
+    // keyboard toggle: Ctrl+B
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault(); this.toggle();
+      }
+    });
+  }
+  toggle() { this.collapsed.update(v => !v); }
+}

@@ -4,10 +4,10 @@ import { ExportService } from './export.service';
 import { ExportJob } from '../../shared/models/export';
 
 @Component({
-    standalone: true,
-    selector: 'app-export-queue',
-    imports: [CommonModule],
-    template: `
+  standalone: true,
+  selector: 'app-export-queue',
+  imports: [CommonModule],
+  template: `
   <div class="p-4">
     <h2 class="text-lg font-semibold mb-3">Export Queue</h2>
     <table class="w-full text-sm">
@@ -25,8 +25,12 @@ import { ExportJob } from '../../shared/models/export';
   `
 })
 export class ExportQueueComponent {
-    private svc = inject(ExportService);
-    jobs = signal<ExportJob[]>([]);
-    constructor() { effect(() => this.load()); }
-    load() { this.svc.list().subscribe(r => this.jobs.set(r.items)); }
+  private svc = inject(ExportService);
+  jobs = signal<ExportJob[]>([]);
+
+  constructor() { effect(() => this.load()); }
+
+  load() {
+    this.svc.list().subscribe((r: { items: ExportJob[] }) => this.jobs.set(r.items));
+  }
 }
