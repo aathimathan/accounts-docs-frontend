@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImageRow } from '../../shared/models/image';
 
@@ -7,110 +7,95 @@ import { ImageRow } from '../../shared/models/image';
   selector: 'app-image-list',
   imports: [CommonModule],
   template: `
-  <div class="h-full min-h-0 flex flex-col">
-    <div class="p-2 border-b bg-white flex flex-wrap gap-2 items-center">
-      <input class="input" placeholder="Search…" (input)="emitFilters({q: $any($event.target).value})" />
-      <input type="date" class="input" (change)="emitFilters({date: $any($event.target).value})" />
-      <select class="input" (change)="emitFilters({doc_type: $any($event.target).value})">
-        <option value="">All Types</option>
-        <option>Invoice</option><option>Packing List</option><option>Receipt</option>
-      </select>
-      <select class="input" (change)="emitFilters({status: $any($event.target).value})">
-        <option value="">Any Status</option><option>new</option><option>processing</option>
-        <option>ready</option><option>error</option><option>reviewed</option>
-      </select>
-      <div class="ml-2 flex items-center gap-1" *ngIf="chips.length">
-        <span class="chip cursor-pointer" *ngFor="let c of chips" (click)="clearChip(c.key)">{{c.label}}: {{c.value}} ✕</span>
-      </div>
-      <div class="ml-auto flex items-center gap-2">
-        <button class="px-3 py-1.5 rounded border text-sm" (click)="refresh.emit()">Refresh</button>
-        <button class="px-3 py-1.5 rounded border text-sm" (click)="bulkEdit.emit()">Bulk Edit</button>
-      </div>
-    </div>
-
-  <div class="p-3 space-y-2" *ngIf="loading">
-      <div class="h-6 bg-gray-200/70 animate-pulse rounded"></div>
-      <div class="h-6 bg-gray-200/70 animate-pulse rounded"></div>
-      <div class="h-6 bg-gray-200/70 animate-pulse rounded"></div>
-    </div>
-  <div class="overflow-y-auto overflow-x-hidden min-h-0" [class.hidden]="loading">
+  <div class="h-full flex flex-col">
+    <!-- Table -->
+    <div class="flex-1 overflow-auto relative">
       <table class="w-full text-sm">
-        <thead class="sticky top-0 bg-gray-50 border-b">
-          <tr class="[&>th]:text-left [&>th]:px-3 [&>th]:py-2">
-            <th>File</th><th>Type</th><th>Total</th><th>Status</th><th>Date</th>
+        <thead class="sticky top-0 bg-gray-100 border-b shadow-sm">
+          <tr>
+            <th class="w-8 py-2 px-3">
+              <input type="checkbox" [checked]="allChecked()" (change)="toggleAll($event)">
+            </th>
+            <th class="py-2 px-3 text-left">File</th>
+            <th class="py-2 px-3 text-left">Type</th>
+            <th class="py-2 px-3 text-left">Total</th>
+            <th class="py-2 px-3 text-left">Status</th>
+            <th class="py-2 px-3 text-left">Date</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let r of rows; let i = index"
-              (click)="selectRow(r.id)"
+          <tr *ngFor="let r of rows" (click)="selectRow(r.id)"
               [class.bg-blue-50]="r.id===selectedId"
-              class="cursor-pointer border-b hover:bg-gray-50 [&>td]:px-3 [&>td]:py-2">
-            <td class="truncate">{{r.originalFilename}}</td>
-            <td>{{r.docType||'—'}}</td>
-            <td>{{r.totalAmount ?? '—'}}</td>
-            <td>
-              <span class="px-2 py-0.5 rounded text-xs" [class]="badgeClass(r.status)">{{r.status}}</span>
+              class="border-b hover:bg-gray-50 transition-colors">
+            <td class="py-1.5 px-3" (click)="$event.stopPropagation()">
+              <input type="checkbox" [checked]="selected.has(r.id)" (change)="toggleRow(r.id,$event)">
             </td>
-            <td>{{r.uploadedAt | date:'short'}}</td>
+            <td class="py-1.5 px-3 truncate">{{r.originalFilename}}</td>
+            <td class="py-1.5 px-3">{{r.docType||'—'}}</td>
+            <td class="py-1.5 px-3">{{r.totalAmount ?? '—'}}</td>
+            <td class="py-1.5 px-3">
+              <span class="badge" [ngClass]="badgeClass(r.status)">{{r.status}}</span>
+            </td>
+            <td class="py-1.5 px-3">{{ r.uploadedAt | date:'short' }}</td>
           </tr>
         </tbody>
       </table>
+      <!-- Skeleton -->
+      <div *ngIf="!rows?.length" class="p-4 space-y-2">
+        <div class="h-6 bg-gray-200 animate-pulse rounded"></div>
+        <div class="h-6 bg-gray-200 animate-pulse rounded"></div>
+        <div class="h-6 bg-gray-200 animate-pulse rounded"></div>
+      </div>
     </div>
-    <div class="mt-auto sticky bottom-0 bg-white border-t p-2 flex items-center justify-between">
-      <div class="text-xs text-gray-500">Rows per page: {{pageSize}}</div>
-      <div class="flex items-center gap-2">
-        <button class="px-2 py-1 border rounded text-xs" (click)="prevPage()">Prev</button>
-        <div class="text-xs text-gray-500">{{page}} / {{pages}}</div>
-        <button class="px-2 py-1 border rounded text-xs" (click)="nextPage()">Next</button>
+    <!-- Footer -->
+    <div class="border-t bg-gray-50 px-3 py-2 text-xs flex items-center justify-between">
+      <div>{{rows.length}} row(s)</div>
+      <div *ngIf="selected.size" class="flex items-center gap-2">
+        <span>{{selected.size}} selected</span>
+        <button class="px-2 py-1 border rounded text-xs" (click)="emitSelection()">Export</button>
+        <button class="px-2 py-1 border rounded text-xs" (click)="clearSelection()">Clear</button>
       </div>
     </div>
   </div>
-  `
+  `,
+  styles: [`
+    .badge.ready{ @apply badge badge--ready; }
+    .badge.processing{ @apply badge badge--processing; }
+    .badge.error{ @apply badge badge--error; }
+    .badge.reviewed{ @apply badge badge--reviewed; }
+  `]
 })
-export class ImageListComponent {
+export class ImageListComponent implements OnChanges {
   @Input() rows: ImageRow[] = [];
   @Input() total = 0;
-  @Input() loading = false;
   @Output() select = new EventEmitter<string>();
   @Output() filtersChange = new EventEmitter<any>();
-  @Output() refresh = new EventEmitter<void>();
-  @Output() bulkEdit = new EventEmitter<void>();
-  selectedId: string | null = null;
-  page = 1; pageSize = 50; get pages() { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
-  chips: { key: string; label: string; value: string }[] = [];
+  @Output() selectionChange = new EventEmitter<string[]>();
 
-  emitFilters(patch: any) {
-    const entries = Object.entries(patch).filter(([, v]) => !!v) as [string, string][];
-    entries.forEach(([k, v]) => this.upsertChip(k, v));
-    this.filtersChange.emit(patch);
+  selectedId: string | null = null;
+  selected = new Set<string>();
+
+  ngOnChanges(ch: SimpleChanges) {
+    if (ch['rows']) {
+      const visible = new Set(this.rows.map(r => r.id));
+      this.selected.forEach(id => { if (!visible.has(id)) this.selected.delete(id); });
+    }
   }
-  upsertChip(key: string, value: string) {
-    const labelMap: any = { q: 'Search', date: 'Date', doc_type: 'Type', status: 'Status' };
-    const i = this.chips.findIndex(c => c.key === key);
-    if (i >= 0) this.chips[i] = { key, label: labelMap[key] || key, value };
-    else this.chips.push({ key, label: labelMap[key] || key, value });
-  }
-  clearChip(key: string) {
-    this.chips = this.chips.filter(c => c.key !== key);
-    this.filtersChange.emit({ [key]: '' });
-  }
-  badgeClass(s?: string) { return s === 'error' ? 'bg-red-100 text-red-700' : s === 'ready' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'; }
+  badgeClass(s?: string) { return s || 'reviewed'; }
+  emitSelection() { this.selectionChange.emit([...this.selected]); }
+  clearSelection() { this.selected.clear(); this.emitSelection(); }
+  toggleRow(id: string, ev: any) { ev.target.checked ? this.selected.add(id) : this.selected.delete(id); this.emitSelection(); }
+  toggleAll(ev: any) { ev.target.checked ? this.rows.forEach(r => this.selected.add(r.id)) : this.selected.clear(); this.emitSelection(); }
+  allChecked() { return this.rows.length > 0 && this.rows.every(r => this.selected.has(r.id)); }
+
+  selectRow(id: string) { this.selectedId = id; this.select.emit(id); }
 
   @HostListener('document:keydown', ['$event'])
   onKeys(ev: KeyboardEvent) {
     if (!this.rows.length) return;
     const idx = this.rows.findIndex(r => r.id === this.selectedId);
-    if (ev.key === 'ArrowDown') {
-      const ni = Math.min((idx < 0 ? 0 : idx + 1), this.rows.length - 1);
-      const id = this.rows[ni].id; this.selectedId = id; this.select.emit(id);
-    }
-    if (ev.key === 'ArrowUp') {
-      const pi = Math.max((idx < 0 ? 0 : idx - 1), 0);
-      const id = this.rows[pi].id; this.selectedId = id; this.select.emit(id);
-    }
+    if (ev.key === 'ArrowDown') { const ni = Math.min(idx + 1, this.rows.length - 1); this.selectedId = this.rows[ni].id; this.select.emit(this.selectedId); }
+    if (ev.key === 'ArrowUp') { const pi = Math.max(idx - 1, 0); this.selectedId = this.rows[pi].id; this.select.emit(this.selectedId); }
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'a') { ev.preventDefault(); this.rows.forEach(r => this.selected.add(r.id)); this.emitSelection(); }
   }
-
-  selectRow(id: string) { this.selectedId = id; this.select.emit(id); }
-  prevPage() { if (this.page > 1) { this.page--; this.filtersChange.emit({ page: this.page, size: this.pageSize }); } }
-  nextPage() { if (this.page < this.pages) { this.page++; this.filtersChange.emit({ page: this.page, size: this.pageSize }); } }
 }

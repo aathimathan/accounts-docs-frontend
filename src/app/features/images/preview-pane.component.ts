@@ -2,18 +2,28 @@ import { Component, Input, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImageBundle } from '../../shared/models/image';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   standalone: true,
   selector: 'app-preview-pane',
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   template: `
   <div class="h-full p-3 flex flex-col">
     <div class="flex items-center justify-between text-xs text-gray-600 px-3 py-2 border rounded bg-white mb-2">
       <div class="flex items-center gap-2">
-        <button class="px-2 py-1 border rounded" (click)="fit()">Fit</button>
-        <button class="px-2 py-1 border rounded" (click)="zoomIn()">+</button>
-        <button class="px-2 py-1 border rounded" (click)="zoomOut()">-</button>
+        <button class="px-2 py-1 border rounded inline-flex items-center gap-1" (click)="fit()">
+          <i-lucide name="maximize-2" class="w-4 h-4"></i-lucide>
+          <span>Fit</span>
+        </button>
+        <button class="px-2 py-1 border rounded inline-flex items-center gap-1" (click)="zoomIn()">
+          <i-lucide name="zoom-in" class="w-4 h-4"></i-lucide>
+          <span>Zoom in</span>
+        </button>
+        <button class="px-2 py-1 border rounded inline-flex items-center gap-1" (click)="zoomOut()">
+          <i-lucide name="zoom-out" class="w-4 h-4"></i-lucide>
+          <span>Zoom out</span>
+        </button>
       </div>
       <div>{{zoomLabel()}}</div>
     </div>

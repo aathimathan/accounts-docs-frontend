@@ -1,72 +1,77 @@
-import { Component, signal, effect } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+
+// NOTE: import your icons from lucide-angular or heroicons if needed
 
 @Component({
   standalone: true,
   selector: 'app-root',
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
-  <div class="min-h-screen flex flex-col bg-gray-50 text-gray-900">
-    <!-- Top App Bar -->
-    <header class="h-14 bg-white border-b px-3 flex items-center gap-3">
-      <div class="font-semibold tracking-tight">Docs Control Room</div>
-      <div class="flex-1"></div>
-      <div class="hidden md:flex items-center gap-2 text-sm mr-2">
-        <span class="text-sm text-gray-600">v0.1</span>
-        <button class="px-2 py-1.5 rounded hover:bg-gray-100 text-sm" aria-label="Toggle theme" (click)="toggleTheme()">☀</button>
-      </div>
-      <nav class="hidden md:flex items-center gap-1 text-sm">
-        <a routerLink="/dashboard" routerLinkActive="bg-gray-200" [routerLinkActiveOptions]="{ exact: true }" class="px-3 py-1.5 rounded hover:bg-gray-100 flex items-center gap-2">Dashboard</a>
-        <a routerLink="/images" routerLinkActive="bg-gray-200" class="px-3 py-1.5 rounded hover:bg-gray-100 flex items-center gap-2">Images</a>
-        <a routerLink="/upload" routerLinkActive="bg-gray-200" class="px-3 py-1.5 rounded hover:bg-gray-100 flex items-center gap-2">Upload</a>
-        <a routerLink="/exports" routerLinkActive="bg-gray-200" class="px-3 py-1.5 rounded hover:bg-gray-100 flex items-center gap-2">Exports</a>
-        <a routerLink="/qb" routerLinkActive="bg-gray-200" class="px-3 py-1.5 rounded hover:bg-gray-100 flex items-center gap-2">Settings</a>
+  <div class="h-screen w-screen grid grid-rows-[3.5rem,1fr] bg-gray-50">
+    <!-- Top bar -->
+    <header class="h-14 bg-gray-900 text-white flex items-center px-4">
+      <div class="font-semibold text-lg tracking-tight">Docs Control Room</div>
+      <nav class="ml-auto hidden md:flex items-center gap-4">
+        <a routerLink="/images" routerLinkActive="active" class="nav-btn">
+          <svg class="w-5 h-5"><!-- gallery icon --></svg>
+          <span>Images</span>
+        </a>
+        <a routerLink="/upload" routerLinkActive="active" class="nav-btn">
+          <svg class="w-5 h-5"><!-- upload-cloud icon --></svg>
+          <span>Upload</span>
+        </a>
+        <a routerLink="/exports" routerLinkActive="active" class="nav-btn">
+          <svg class="w-5 h-5"><!-- square-outbound icon --></svg>
+          <span>Exports</span>
+        </a>
+        <a routerLink="/qb" routerLinkActive="active" class="nav-btn">
+          <svg class="w-5 h-5"><!-- receipt icon --></svg>
+          <span>QuickBooks</span>
+        </a>
+        <a routerLink="/settings" routerLinkActive="active" class="nav-btn">
+          <svg class="w-5 h-5"><!-- cog icon --></svg>
+          <span>Settings</span>
+        </a>
       </nav>
-  <button class="md:hidden ml-1 px-2 py-1.5 rounded hover:bg-gray-100" aria-label="Open menu" (click)="toggleMobile()">☰</button>
+      <!-- Mobile menu toggle -->
+      <button class="ml-auto md:hidden p-2" (click)="open.set(!open())">
+        <svg class="w-6 h-6"><!-- menu icon --></svg>
+      </button>
     </header>
-    <!-- Mobile Menu -->
-    <div class="md:hidden border-b bg-white" [class.hidden]="!mobileOpen()">
-      <nav class="px-3 py-2 flex flex-col text-sm">
-        <a routerLink="/dashboard" routerLinkActive="bg-gray-100" class="flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100" (click)="closeMobile()">Dashboard</a>
-        <a routerLink="/images" routerLinkActive="bg-gray-100" class="flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100" (click)="closeMobile()">Images</a>
-        <a routerLink="/upload" routerLinkActive="bg-gray-100" class="flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100" (click)="closeMobile()">Upload</a>
-        <a routerLink="/exports" routerLinkActive="bg-gray-100" class="flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100" (click)="closeMobile()">Exports</a>
-        <a routerLink="/qb" routerLinkActive="bg-gray-100" class="flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100" (click)="closeMobile()">Settings</a>
+
+    <!-- Mobile dropdown -->
+    <div class="md:hidden bg-gray-900 text-white" *ngIf="open()">
+      <nav class="flex flex-col p-2">
+        <a routerLink="/images" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Images</a>
+        <a routerLink="/upload" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Upload</a>
+        <a routerLink="/exports" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Exports</a>
+        <a routerLink="/qb" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">QuickBooks</a>
+        <a routerLink="/settings" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Settings</a>
       </nav>
     </div>
 
-    <!-- Toasts mount point -->
-    <div id="toasts" class="fixed top-3 right-3 space-y-2 z-50"></div>
-
-    <!-- Routed Views -->
-    <main class="h-[calc(100vh-3.5rem)] overflow-hidden">
+    <main class="h-full overflow-hidden">
       <router-outlet />
     </main>
   </div>
-  `
+  `,
+  styles: [`
+    .nav-btn {
+      @apply flex items-center gap-1 px-3 py-1.5 text-sm rounded transition-colors;
+    }
+    .nav-btn.active, .nav-btn:hover {
+      @apply bg-gray-800;
+    }
+    .nav-btn--mobile {
+      @apply flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors;
+    }
+    .nav-btn--mobile.active, .nav-btn--mobile:hover {
+      @apply bg-gray-800;
+    }
+  `]
 })
 export class AppComponent {
-  collapsed = signal<boolean>(false); // no-op for now (legacy)
-  mobileOpen = signal<boolean>(false);
-
-  constructor() {
-    const v = localStorage.getItem('sidebar.collapsed');
-    this.collapsed.set(v === '1');
-    effect(() => {
-      localStorage.setItem('sidebar.collapsed', this.collapsed() ? '1' : '0');
-    });
-    // keyboard: close mobile menu on Escape
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.mobileOpen()) this.mobileOpen.set(false);
-    });
-  }
-  toggle() { this.collapsed.update(v => !v); }
-  closeMobile() { this.mobileOpen.set(false); }
-  toggleTheme() {
-    document.documentElement.classList.toggle('dark');
-    document.body.classList.toggle('bg-gray-900');
-    document.body.classList.toggle('text-gray-100');
-  }
-  toggleMobile() { this.mobileOpen.update(v => !v); }
+  open = signal<boolean>(false);
 }
