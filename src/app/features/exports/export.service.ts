@@ -11,6 +11,16 @@ export class ExportService {
         return this.http.post<{ jobId: string }>('/exports/qb', { imageId });
     }
 
+    // add this bulk method to remove the compile error
+    bulkQB(imageIds: string[]) {
+        // call your bulk endpoint; adjust the type if needed
+        return this.http.post<{ jobs: { jobId: number; imageId: number }[] }>(
+            '/exports/qb/bulk',
+            { imageIds }
+        );
+    }
+
+
     list(): Observable<{ items: ExportJob[] }> {
         return this.http.get<{ items: ExportJob[] }>('/exports');
     }
