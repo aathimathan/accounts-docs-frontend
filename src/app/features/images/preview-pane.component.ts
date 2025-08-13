@@ -45,21 +45,29 @@ export class PreviewPaneComponent {
   constructor(private sanitizer: DomSanitizer) { }
   isPdf(u?: string | null) { return /(\.pdf)(\?|#|$)/i.test(u || ''); }
   isImage(u?: string | null) { return /(\.png|\.jpe?g|\.gif|\.webp|\.bmp|\.svg)(\?|#|$)/i.test(u || ''); }
-  pdfSrc = computed<SafeResourceUrl | null>(() => {
-    const u = this.bundle?.image?.previewUrl || '';
-    if (!this.isPdf(u)) return null;
-    // Trust only same-origin relative URLs (e.g., /uploads/...) for embedding
+
+
+
+  pdfSrc(): SafeResourceUrl | null {
+    const u = this.bundle?.image?.previewUrl ?? '';
+    if (!this.isPdf(u)) {
+      return null;
+    }
     if (u.startsWith('/')) {
       return this.sanitizer.bypassSecurityTrustResourceUrl(u);
     }
     try {
       const url = new URL(u, window.location.origin);
-      if (url.origin === window.location.origin) {
-        return this.sanitizer.bypassSecurityTrustResourceUrl(url.toString());
-      }
-    } catch { }
-    return null;
-  });
+      // If you want to keep same-origin restriction, add: if (url.origin !== window.location.origin) return null;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(url.toString());
+    } catch {
+      return null;
+    }
+  }
+
+
+
+
   imgTransform = computed(() => `scale(${this.zoom() / 100})`);
   fit() { this.zoom.set(100); }
   zoomIn() { this.zoom.update(v => Math.min(200, v + 10)); }
