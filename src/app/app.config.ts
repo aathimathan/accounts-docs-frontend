@@ -10,8 +10,10 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
-    { provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({
-      Image, UploadCloud, Send, FileText, Settings, Menu, RefreshCcw, Loader, CheckCircle, AlertTriangle, Eye, Edit3, Code, Clock, Trash, Plus, Save, Maximize2, ZoomIn, ZoomOut, Link
-    }) }
+    {
+      provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({
+        Image, UploadCloud, Send, FileText, Settings, Menu, RefreshCcw, Loader, CheckCircle, AlertTriangle, Eye, Edit3, Code, Clock, Trash, Plus, Save, Maximize2, ZoomIn, ZoomOut, Link
+      })
+    }
   ]
 };

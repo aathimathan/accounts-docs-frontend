@@ -2,14 +2,32 @@ import { Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import { Eye, UploadCloud, Send, FileText, Settings } from 'lucide-angular';
-
-// NOTE: import your icons from lucide-angular or heroicons if needed
+import {
+  Image,
+  Code,
+  Clock,
+  Plus,
+  Trash,
+  Save,
+  Upload,
+  Edit3,
+  Eye,
+  UploadCloud,
+  Send,
+  FileText,
+  Settings
+} from 'lucide-angular';
 
 @Component({
-  standalone: true,
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule],
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    LucideAngularModule
+  ],
   template: `
   <div class="h-screen w-screen grid grid-rows-[3.5rem,1fr,1.5rem] bg-gray-50">
     <!-- Top bar -->
