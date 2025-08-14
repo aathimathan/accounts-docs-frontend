@@ -42,15 +42,18 @@ import { ExportService } from '../exports/export.service';
     </div>
 
     <!-- Split view -->
-   <div class="grid grid-cols-[minmax(500px,600px)_1fr] h-full overflow-hidden">
-  <app-image-list
-    class="border-r h-full"
-    [rows]="rows()"
-    [total]="total()"
-    (select)="onSelect($event)"
-    (filtersChange)="onFilter($event)"
-    (selectionChange)="selected.set($event)">
-  </app-image-list>
+   <div class="grid grid-cols-[minmax(500px,600px)_1fr] h-full min-h-0">
+      <div class="h-full overflow-y-auto">
+      <app-image-list
+        class="border-r h-full"
+        [rows]="rows()"
+        [total]="total()"
+        (select)="onSelect($event)"
+        (filtersChange)="onFilter($event)"
+        (selectionChange)="selected.set($event)">
+      </app-image-list>
+     </div>
+
       <app-image-detail [imageId]="selectedId()" (exportQB)="onExport($event)"></app-image-detail>
     </div>
   </div>
