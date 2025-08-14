@@ -51,6 +51,10 @@ import { HttpEventType } from '@angular/common/http';
 export class UploadComponent {
   private up = inject(UploadService);
   jobs: any[] = [];
+  // Concurrency control
+  private inFlight = 0;
+  private readonly maxConcurrent = 3; // tune as needed
+  private pumpScheduled = false;
   get processed() { return this.jobs.filter(j => j.status === 'processed').length; }
   get failed() { return this.jobs.filter(j => j.status === 'failed').length; }
 
@@ -61,11 +65,12 @@ export class UploadComponent {
     for (const f of files) {
       this.jobs.unshift({ id: Date.now() + Math.random(), name: f.name, size: f.size, status: 'queued', progress: 0, eta: '--', error: null, timer: null, file: f });
     }
-    // start queued
-    this.jobs.filter(j => j.status === 'queued').forEach(j => this.startUpload(j));
+    // start queued with concurrency limiting
+    this.schedulePump();
   }
 
-  startUpload(job: any) {
+  private startUpload(job: any) {
+    this.inFlight++;
     job.status = 'uploading'; job.progress = 0; job.eta = '--';
     const sub = this.up.upload(job.file).subscribe({
       next: (event: any) => {
@@ -75,12 +80,42 @@ export class UploadComponent {
           job.progress = 100; job.status = 'processed';
         }
       },
-      error: (err: any) => { job.status = 'failed'; job.error = (err?.error?.error || err?.message || 'Upload failed'); },
-      complete: () => { job.sub = null; }
+      error: (err: any) => {
+        job.status = 'failed';
+        job.error = (err?.error?.error || err?.message || 'Upload failed');
+      },
+      complete: () => {
+        job.sub = null;
+        this.inFlight = Math.max(0, this.inFlight - 1);
+        this.schedulePump();
+      }
     });
     job.sub = sub;
   }
 
-  retry(job: any) { job.status = 'queued'; job.error = null; this.startUpload(job); }
-  cancel(job: any) { try { job.sub?.unsubscribe?.(); } catch { } job.status = 'failed'; job.error = 'Canceled'; }
+  private pumpQueue() {
+    this.pumpScheduled = false;
+    while (this.inFlight < this.maxConcurrent) {
+      const next = this.jobs.find(j => j.status === 'queued');
+      if (!next) break;
+      this.startUpload(next);
+    }
+  }
+
+  private schedulePump() {
+    if (this.pumpScheduled) return;
+    this.pumpScheduled = true;
+    // slight delay to batch rapid queue updates and avoid connection thundering herd
+    setTimeout(() => this.pumpQueue(), 50);
+  }
+
+  retry(job: any) { job.status = 'queued'; job.error = null; this.schedulePump(); }
+  cancel(job: any) {
+    try { job.sub?.unsubscribe?.(); } catch { }
+    if (job.status === 'uploading') {
+      this.inFlight = Math.max(0, this.inFlight - 1);
+      this.schedulePump();
+    }
+    job.status = 'failed'; job.error = 'Canceled';
+  }
 }
