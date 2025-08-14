@@ -9,13 +9,12 @@ import {
   Plus,
   Trash,
   Save,
-  Upload,
-  Edit3,
   Eye,
-  UploadCloud,
   Send,
   FileText,
-  Settings
+  Settings,
+  UploadCloud,
+  Menu
 } from 'lucide-angular';
 
 @Component({
@@ -25,7 +24,6 @@ import {
     CommonModule,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive,
     LucideAngularModule
   ],
   template: `
@@ -35,29 +33,29 @@ import {
       <div class="font-semibold text-lg tracking-tight">Docs Control Room</div>
       <nav class="ml-auto hidden md:flex items-center gap-4">
         <a routerLink="/images" routerLinkActive="active" class="nav-btn">
-          <i-lucide name="image" class="w-5 h-5"></i-lucide>
+          <i-lucide [img]="ImageIcon" class="w-5 h-5"></i-lucide>
           <span>Images</span>
         </a>
         <a routerLink="/upload" routerLinkActive="active" class="nav-btn">
-          <i-lucide name="upload-cloud" class="w-5 h-5"></i-lucide>
+          <i-lucide [img]="UploadCloudIcon" class="w-5 h-5"></i-lucide>
           <span>Upload</span>
         </a>
         <a routerLink="/exports" routerLinkActive="active" class="nav-btn">
-          <i-lucide name="send" class="w-5 h-5"></i-lucide>
+          <i-lucide [img]="SendIcon" class="w-5 h-5"></i-lucide>
           <span>Exports</span>
         </a>
         <a routerLink="/qb" routerLinkActive="active" class="nav-btn">
-          <i-lucide name="file-text" class="w-5 h-5"></i-lucide>
+          <i-lucide [img]="FileTextIcon" class="w-5 h-5"></i-lucide>
           <span>QuickBooks</span>
         </a>
         <a routerLink="/settings" routerLinkActive="active" class="nav-btn">
-          <i-lucide name="settings" class="w-5 h-5"></i-lucide>
+          <i-lucide [img]="SettingsIcon" class="w-5 h-5"></i-lucide>
           <span>Settings</span>
         </a>
       </nav>
       <!-- Mobile menu toggle -->
       <button class="ml-auto md:hidden p-2" (click)="open.set(!open())">
-        <i-lucide name="menu" class="w-6 h-6"></i-lucide>
+        <i-lucide [img]="MenuIcon" class="w-6 h-6"></i-lucide>
       </button>
     </header>
 
@@ -86,4 +84,11 @@ import {
 export class AppComponent {
   open = signal<boolean>(false);
   currentYear = new Date().getFullYear();
+  // Icon references for [img] usage
+  ImageIcon = Image;
+  UploadCloudIcon = UploadCloud;
+  SendIcon = Send;
+  FileTextIcon = FileText;
+  SettingsIcon = Settings;
+  MenuIcon = Menu;
 }
