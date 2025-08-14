@@ -11,20 +11,14 @@ import { LucideAngularModule } from 'lucide-angular';
   template: `
   <div class="h-full p-3 flex flex-col">
     <div class="flex items-center justify-between text-xs text-gray-600 px-3 py-2 border rounded bg-white mb-2">
-      <div class="flex items-center gap-2">
-        <button class="px-2 py-1 border rounded inline-flex items-center gap-1" (click)="fit()">
-          <i-lucide name="maximize-2" class="w-4 h-4"></i-lucide>
-          <span>Fit</span>
-        </button>
-        <button class="px-2 py-1 border rounded inline-flex items-center gap-1" (click)="zoomIn()">
-          <i-lucide name="zoom-in" class="w-4 h-4"></i-lucide>
-          <span>Zoom in</span>
-        </button>
-        <button class="px-2 py-1 border rounded inline-flex items-center gap-1" (click)="zoomOut()">
-          <i-lucide name="zoom-out" class="w-4 h-4"></i-lucide>
-          <span>Zoom out</span>
-        </button>
-      </div>
+      <!-- Zoom controls: replace the icons with plain text -->
+<div class="flex items-center gap-2">
+  <button (click)="zoomOut()" class="px-2 py-1 border rounded text-lg font-bold">–</button>
+  <button (click)="zoomIn()"  class="px-2 py-1 border rounded text-lg font-bold">+</button>
+  <button (click)="fit()"     class="px-2 py-1 border rounded text-sm">Fit</button>
+  <div class="text-sm">{{ zoom() }}%</div>
+</div>
+
       <div>{{zoomLabel()}}</div>
     </div>
     <ng-container *ngIf="pdfSrc(); else other">

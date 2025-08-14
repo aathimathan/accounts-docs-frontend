@@ -17,11 +17,11 @@ import { HistoryPaneComponent } from './history-pane.component';
     <!-- Summary bar -->
     <div class="px-4 py-2 bg-white border-b flex items-center justify-between">
       <div class="flex flex-col gap-1">
-        <div class="font-medium truncate">{{ b.image.originalFilename }}</div>
+  <div class="font-medium truncate">{{ b.image.originalFilename }}</div>
         <div class="flex gap-1 text-xs text-gray-500">
-          <span *ngIf="b.normalized?.customer" class="badge">Cust: {{ b.normalized.customer }}</span>
-          <span *ngIf="b.normalized?.lines?.length" class="badge">Lines: {{ b.normalized.lines.length }}</span>
-          <span *ngIf="b.normalized?.total" class="badge">Total: {{ b.normalized.total | currency:'USD' }}</span>
+          <span *ngIf="b.normalized?.customer" class="badge">Cust: {{ b.normalized?.customer }}</span>
+          <span *ngIf="(b.normalized?.lines?.length || 0) > 0" class="badge">Lines: {{ b.normalized?.lines?.length || 0 }}</span>
+          <span *ngIf="b.normalized?.total != null" class="badge">Total: {{ b.normalized?.total | currency:'USD' }}</span>
         </div>
       </div>
       <button class="btn" (click)="export()">Export to QB</button>
@@ -55,11 +55,7 @@ import { HistoryPaneComponent } from './history-pane.component';
     <div class="h-full flex items-center justify-center text-gray-400">Select an image to view details</div>
   </ng-template>
   `,
-  styles: [`
-    .badge { @apply badge bg-gray-100 text-gray-700; }
-    .tab-btn { @apply flex items-center gap-1 px-3 py-2 text-sm rounded transition-colors; }
-    .tab-btn.active, .tab-btn:hover { @apply bg-white text-gray-900; }
-  `]
+  styles: []
 })
 export class ImageDetailComponent {
   private api = inject(ImagesService);

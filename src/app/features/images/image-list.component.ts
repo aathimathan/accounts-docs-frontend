@@ -34,7 +34,7 @@ import { ImageRow } from '../../shared/models/image';
             <td class="py-1.5 px-3">{{r.docType||'—'}}</td>
             <td class="py-1.5 px-3">{{r.totalAmount ?? '—'}}</td>
             <td class="py-1.5 px-3">
-              <span class="badge" [ngClass]="badgeClass(r.status)">{{r.status}}</span>
+              <span class="badge" [ngClass]="'badge--' + (badgeClass(r.status))">{{r.status}}</span>
             </td>
             <td class="py-1.5 px-3">{{ r.uploadedAt | date:'short' }}</td>
           </tr>
@@ -58,12 +58,7 @@ import { ImageRow } from '../../shared/models/image';
     </div>
   </div>
   `,
-  styles: [`
-    .badge.ready{ @apply badge badge--ready; }
-    .badge.processing{ @apply badge badge--processing; }
-    .badge.error{ @apply badge badge--error; }
-    .badge.reviewed{ @apply badge badge--reviewed; }
-  `]
+  styles: []
 })
 export class ImageListComponent implements OnChanges {
   @Input() rows: ImageRow[] = [];

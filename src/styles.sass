@@ -1,41 +1,60 @@
-/* Global scroll policy: no horizontal scroll */
+@tailwind base
+@tailwind components
+
+/* Reusable component classes registered in Tailwind's components layer */
+@layer components
+  /* Inputs / chips */
+  .input
+    @apply border rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-400
+
+  .chip
+    @apply inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700
+
+  /* Badges */
+  .badge
+    @apply text-xs px-2 py-0.5 rounded-full
+  .badge--ready
+    @apply bg-green-100 text-green-800
+  .badge--error
+    @apply bg-red-100 text-red-800
+  .badge--processing
+    @apply bg-indigo-100 text-indigo-800
+  .badge--reviewed
+    @apply bg-gray-200 text-gray-700
+
+  /* Tabs + active state */
+  .tab-btn
+    @apply flex items-center gap-1 px-3 py-2 text-sm rounded transition-colors
+  .tab-btn.active, .tab-btn:hover
+    @apply bg-white text-gray-900
+  .tab-active
+    @apply bg-gray-200
+
+  /* Top nav buttons (dark bar) */
+  .nav-btn
+    @apply flex items-center gap-1 px-3 py-1.5 text-sm rounded transition-colors text-white
+  .nav-btn.active, .nav-btn:hover
+    @apply bg-gray-800
+  .nav-btn--mobile
+    @apply flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors text-white
+  .nav-btn--mobile.active, .nav-btn--mobile:hover
+    @apply bg-gray-800
+
+  /* Buttons */
+  .btn
+    @apply px-3 py-1.5 rounded text-sm font-medium transition-colors bg-gray-900 text-white
+  .btn:hover:enabled
+    @apply bg-gray-800
+  .btn:disabled
+    @apply bg-gray-300 text-gray-500 cursor-not-allowed
+
+@tailwind utilities
+
+/* ── Global & layout ───────────────────────────────────────────────────────── */
+
 html, body
   overflow-x: hidden
   height: 100%
-
-/* Utility to force a vertical-only scroll container */
-.vscroll
-  overflow-y: auto
-  overflow-x: hidden
-
-/* Inputs and chips consistent styling (existing project patterns) */
-.input
-  @apply border rounded px-2 py-1 text-sm bg-white
-
-.chip
-  @apply inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700
-
-.tab-active
-  @apply bg-gray-200
-@tailwind base
-@tailwind components
-@tailwind utilities
-
-@layer components
-  .input
-    @apply border rounded px-2 py-1 text-sm
-  .chip
-    @apply inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700
-  .badge
-    @apply text-xs px-2 py-0.5 rounded-full
-  .badge-ready
-    @apply bg-green-100 text-green-800
-  .badge-error
-    @apply bg-red-100 text-red-800
-  .badge-processing
-    @apply bg-indigo-100 text-indigo-800
-  .tab-active
-    @apply bg-gray-200
 
 body
   background: #f8f9fb
@@ -45,63 +64,26 @@ body
   min-height: 100vh
   font-size: 12px
 
+/* Utility to force a vertical-only scroll container */
+.vscroll
+  overflow-y: auto
+  overflow-x: hidden
+
 .layout
   display: flex
   min-height: 100vh
 
-.sidebar
-  width: 210px
-  background: #fff
-  color: #18181b
-  border-right: 1px solid #e5e7eb
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  padding: 0
-  box-shadow: none
-
-.sidebar-title
-  font-size: 12px
-  font-weight: bold
-  margin: 32px 0 16px 40px
-  letter-spacing: -1px
-  padding-left: 0
-
-.sidebar nav ul
-  list-style: none
-  padding: 0
-  margin: 0
-
-.sidebar nav ul li
-  width: 100%
-  margin-bottom: 0
-
-.sidebar nav ul li a
-  display: block
-  width: 100%
-  color: #18181b
-  text-decoration: none
-  padding: 12px 40px
-  border-radius: 10px 0 0 10px
-  font-size: 12px
-  margin-bottom: 2px
-  font-weight: normal
-  transition: background 0.12s
-
-.sidebar nav ul li a.active,
-.sidebar nav ul li a:hover
-  background: #f1f5f9
-  color: #18181b
-
+/* Ensure router area fills viewport next to sidebar */
 .main
+  height: 100vh
+  overflow: hidden
+  padding: 0
   flex: 1
-  min-height: 100vh
   display: flex
   flex-direction: column
   justify-content: flex-start
   align-items: center
   background: #f8f9fb
-  padding: 0
 
 .card
   width: 100%
@@ -131,25 +113,7 @@ input[type="file"]
   padding: 6px 8px
   font-size: 12px
 
-.btn
-  background: #18181b
-  color: #fff
-  border: none
-  border-radius: 8px
-  padding: 9px 20px
-  font-size: 12px
-  font-weight: normal
-  cursor: pointer
-  transition: background 0.15s
-
-.btn:disabled
-  background: #d1d5db
-  color: #7b7b7b
-  cursor: not-allowed
-
-.btn:hover:enabled
-  background: #2a2a2e
-
+/* Tables */
 table
   width: 100%
   background: #fff
@@ -175,6 +139,7 @@ img
   border-radius: 8px
   background: #f3f4f6
 
+/* Scrollbars */
 ::-webkit-scrollbar
   width: 12px
   background: #f1f5f9
@@ -183,6 +148,7 @@ img
   background: #e5e7eb
   border-radius: 8px
 
+/* Footer */
 .footer
   width: 100%
   text-align: center
@@ -196,6 +162,81 @@ img
   line-height: 1.2
   background: transparent
   border: none
+
+/* ── Sidebar & collapse ────────────────────────────────────────────────────── */
+
+.sidebar
+  width: 210px
+  background: #fff
+  color: #18181b
+  border-right: 1px solid #e5e7eb
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  padding: 0
+  box-shadow: none
+
+.sidebar-title
+  font-size: 12px
+  font-weight: bold
+  margin: 32px 0 16px 40px
+  letter-spacing: -1px
+  padding-left: 0
+
+.sidebar nav ul
+  list-style: none
+  padding: 0
+  margin: 0
+
+.sidebar nav ul li
+  width: 100%
+  margin-bottom: 0
+
+.sidebar .nav-link
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 12px 16px 12px 40px
+  border-radius: 10px 0 0 10px
+  font-size: 12px
+  color: #18181b
+  text-decoration: none
+  transition: background 0.12s
+
+.sidebar .nav-link.active, .sidebar .nav-link:hover
+  background: #f1f5f9
+  color: #18181b
+
+.sidebar .nav-icon
+  width: 18px
+  text-align: center
+  flex: 0 0 18px
+
+.sidebar.collapsed
+  width: 60px
+
+.sidebar.collapsed .sidebar-title
+  margin: 20px 0 12px 0
+  text-align: center
+  padding-left: 0
+
+.sidebar.collapsed .nav-link
+  justify-content: center
+  padding: 12px 0
+
+.sidebar.collapsed .nav-label
+  display: none
+
+.collapse-btn
+  margin: auto 8px 12px 8px
+  padding: 8px
+  border-radius: 8px
+  background: #f1f5f9
+  border: 1px solid #e5e7eb
+  cursor: pointer
+  font-size: 12px
+
+/* ── Images page layout ───────────────────────────────────────────────────── */
 
 .image-list-layout
   display: flex
@@ -348,7 +389,7 @@ img
   margin-top: 16px
 
 .extracted-table-container
-  max-height: 220px // or any height you want
+  max-height: 220px
   overflow-y: auto
   overflow-x: auto
   width: 100%
@@ -384,48 +425,3 @@ img
     font-size: 12px
     max-width: 100%
     white-space: pre-wrap
-
-    /* ── Sidebar collapse behavior ───────────────────────────────────────────── */
-
-.sidebar .nav-link
-  display: flex
-  align-items: center
-  gap: 12px
-  padding: 12px 16px 12px 40px
-  border-radius: 10px 0 0 10px
-  font-size: 12px
-
-.sidebar .nav-icon
-  width: 18px
-  text-align: center
-  flex: 0 0 18px
-
-.sidebar.collapsed
-  width: 60px
-
-.sidebar.collapsed .sidebar-title
-  margin: 20px 0 12px 0
-  text-align: center
-  padding-left: 0
-
-.sidebar.collapsed .nav-link
-  justify-content: center
-  padding: 12px 0
-
-.sidebar.collapsed .nav-label
-  display: none
-
-.collapse-btn
-  margin: auto 8px 12px 8px
-  padding: 8px
-  border-radius: 8px
-  background: #f1f5f9
-  border: 1px solid #e5e7eb
-  cursor: pointer
-  font-size: 12px
-
-/* Ensure router area fills viewport next to sidebar */
-.main
-  height: 100vh
-  overflow: hidden
-  padding: 0

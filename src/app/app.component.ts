@@ -57,20 +57,7 @@ import { CommonModule } from '@angular/common';
     </main>
   </div>
   `,
-  styles: [`
-    .nav-btn {
-      @apply flex items-center gap-1 px-3 py-1.5 text-sm rounded transition-colors;
-    }
-    .nav-btn.active, .nav-btn:hover {
-      @apply bg-gray-800;
-    }
-    .nav-btn--mobile {
-      @apply flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors;
-    }
-    .nav-btn--mobile.active, .nav-btn--mobile:hover {
-      @apply bg-gray-800;
-    }
-  `]
+  styles: []
 })
 export class AppComponent {
   open = signal<boolean>(false);
