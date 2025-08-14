@@ -30,7 +30,9 @@ import { ImageRow } from '../../shared/models/image';
             <td class="py-1.5 px-3" (click)="$event.stopPropagation()">
               <input type="checkbox" [checked]="selected.has(r.id)" (change)="toggleRow(r.id,$event)">
             </td>
-            <td class="py-1.5 px-3 truncate">{{r.originalFilename}}</td>
+            <td class="truncate" [attr.title]="r.originalFilename">
+                  {{ displayFilename(r.originalFilename) }}
+            </td>
             <td class="py-1.5 px-3">{{r.docType||'—'}}</td>
             <td class="py-1.5 px-3">{{r.totalAmount ?? '—'}}</td>
             <td class="py-1.5 px-3">
@@ -76,6 +78,12 @@ export class ImageListComponent implements OnChanges {
       this.selected.forEach(id => { if (!visible.has(id)) this.selected.delete(id); });
     }
   }
+
+  displayFilename(name: string | undefined): string {
+    if (!name) { return ''; }
+    return name.length > 17 ? name.slice(0, 17) + '…' : name;
+  }
+
   badgeClass(s?: string) { return s || 'reviewed'; }
   emitSelection() { this.selectionChange.emit([...this.selected]); }
   clearSelection() { this.selected.clear(); this.emitSelection(); }

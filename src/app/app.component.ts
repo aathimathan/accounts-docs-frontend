@@ -55,6 +55,10 @@ import { CommonModule } from '@angular/common';
     <main class="h-full overflow-hidden">
       <router-outlet />
     </main>
+     <!-- Footer -->
+      <footer class="text-center text-xs bg-white border-t flex items-center justify-center">
+        © 2025 Your Company. All rights reserved.
+      </footer>
   </div>
   `,
   styles: []
