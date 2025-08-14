@@ -9,7 +9,7 @@ import { ImageRow } from '../../shared/models/image';
   template: `
   <div class="h-full flex flex-col">
     <!-- Table -->
-    <div class="flex-1 overflow-auto relative">
+    <div class="flex-1 overflow-y-auto">
       <table class="w-full text-sm">
         <thead class="sticky top-0 bg-gray-100 border-b shadow-sm">
           <tr>
