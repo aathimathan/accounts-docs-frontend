@@ -42,7 +42,7 @@ import { ExportService } from '../exports/export.service';
     </div>
 
     <!-- Split view -->
-   <div class="grid grid-cols-[minmax(360px,520px)_1fr] h-full overflow-hidden">
+   <div class="grid grid-cols-[minmax(500px,600px)_1fr] h-full overflow-hidden">
   <app-image-list
     class="border-r h-full"
     [rows]="rows()"
