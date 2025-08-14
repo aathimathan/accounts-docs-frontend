@@ -1,43 +1,45 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
+import { Eye, UploadCloud, Send, FileText, Settings } from 'lucide-angular';
 
 // NOTE: import your icons from lucide-angular or heroicons if needed
 
 @Component({
   standalone: true,
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule],
   template: `
-  <div class="h-screen w-screen grid grid-rows-[3.5rem,1fr] bg-gray-50">
+  <div class="h-screen w-screen grid grid-rows-[3.5rem,1fr,1.5rem] bg-gray-50">
     <!-- Top bar -->
     <header class="h-14 bg-gray-900 text-white flex items-center px-4">
       <div class="font-semibold text-lg tracking-tight">Docs Control Room</div>
       <nav class="ml-auto hidden md:flex items-center gap-4">
         <a routerLink="/images" routerLinkActive="active" class="nav-btn">
-          <svg class="w-5 h-5"><!-- gallery icon --></svg>
+          <i-lucide name="image" class="w-5 h-5"></i-lucide>
           <span>Images</span>
         </a>
         <a routerLink="/upload" routerLinkActive="active" class="nav-btn">
-          <svg class="w-5 h-5"><!-- upload-cloud icon --></svg>
+          <i-lucide name="upload-cloud" class="w-5 h-5"></i-lucide>
           <span>Upload</span>
         </a>
         <a routerLink="/exports" routerLinkActive="active" class="nav-btn">
-          <svg class="w-5 h-5"><!-- square-outbound icon --></svg>
+          <i-lucide name="send" class="w-5 h-5"></i-lucide>
           <span>Exports</span>
         </a>
         <a routerLink="/qb" routerLinkActive="active" class="nav-btn">
-          <svg class="w-5 h-5"><!-- receipt icon --></svg>
+          <i-lucide name="file-text" class="w-5 h-5"></i-lucide>
           <span>QuickBooks</span>
         </a>
         <a routerLink="/settings" routerLinkActive="active" class="nav-btn">
-          <svg class="w-5 h-5"><!-- cog icon --></svg>
+          <i-lucide name="settings" class="w-5 h-5"></i-lucide>
           <span>Settings</span>
         </a>
       </nav>
       <!-- Mobile menu toggle -->
       <button class="ml-auto md:hidden p-2" (click)="open.set(!open())">
-        <svg class="w-6 h-6"><!-- menu icon --></svg>
+        <i-lucide name="menu" class="w-6 h-6"></i-lucide>
       </button>
     </header>
 
@@ -55,14 +57,15 @@ import { CommonModule } from '@angular/common';
     <main class="h-full overflow-hidden">
       <router-outlet />
     </main>
-     <!-- Footer -->
-      <footer class="text-center text-xs bg-white border-t flex items-center justify-center">
-        © 2025 Your Company. All rights reserved.
-      </footer>
+    <!-- Footer -->
+    <footer class="text-center text-xs bg-white border-t flex items-center justify-center">
+      © {{ currentYear }} Docs Control Room
+    </footer>
   </div>
   `,
   styles: []
 })
 export class AppComponent {
   open = signal<boolean>(false);
+  currentYear = new Date().getFullYear();
 }

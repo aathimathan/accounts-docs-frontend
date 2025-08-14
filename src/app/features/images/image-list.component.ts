@@ -1,22 +1,24 @@
 import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImageRow } from '../../shared/models/image';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   standalone: true,
   selector: 'app-image-list',
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   template: `
   <div class="h-full flex flex-col">
     <!-- Table -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto relative">
       <table class="w-full text-sm">
         <thead class="sticky top-0 bg-gray-100 border-b shadow-sm">
           <tr>
-            <th class="w-8 py-2 px-3">
+            <th class="w-8 py-2 px-3"></th>
+            <th class="py-2 px-3 text-left">
               <input type="checkbox" [checked]="allChecked()" (change)="toggleAll($event)">
+              File
             </th>
-            <th class="py-2 px-3 text-left">File</th>
             <th class="py-2 px-3 text-left">Type</th>
             <th class="py-2 px-3 text-left">Total</th>
             <th class="py-2 px-3 text-left">Status</th>
@@ -27,11 +29,15 @@ import { ImageRow } from '../../shared/models/image';
           <tr *ngFor="let r of rows" (click)="selectRow(r.id)"
               [class.bg-blue-50]="r.id===selectedId"
               class="border-b hover:bg-gray-50 transition-colors">
-            <td class="py-1.5 px-3" (click)="$event.stopPropagation()">
-              <input type="checkbox" [checked]="selected.has(r.id)" (change)="toggleRow(r.id,$event)">
+            <td class="py-1.5 px-3">
+              <ng-container *ngIf="r.docType === 'Invoice'; else imageIcon">
+                <i-lucide name="file-text" class="w-4 h-4"></i-lucide>
+              </ng-container>
+              <ng-template #imageIcon><i-lucide name="image" class="w-4 h-4"></i-lucide></ng-template>
             </td>
-            <td class="truncate" [attr.title]="r.originalFilename">
-                  {{ displayFilename(r.originalFilename) }}
+            <td class="py-1.5 px-3 truncate" [attr.title]="r.originalFilename">
+              <input type="checkbox" class="mr-2" [checked]="selected.has(r.id)" (click)="$event.stopPropagation()" (change)="toggleRow(r.id,$event)">
+              {{ displayFilename(r.originalFilename) }}
             </td>
             <td class="py-1.5 px-3">{{r.docType||'—'}}</td>
             <td class="py-1.5 px-3">{{r.totalAmount ?? '—'}}</td>
@@ -79,12 +85,10 @@ export class ImageListComponent implements OnChanges {
     }
   }
 
-  displayFilename(name: string | undefined): string {
-    if (!name) { return ''; }
-    return name.length > 17 ? name.slice(0, 17) + '…' : name;
-  }
-
   badgeClass(s?: string) { return s || 'reviewed'; }
+  displayFilename(name: string | undefined): string {
+    return !name ? '' : name.length > 17 ? name.slice(0, 17) + '…' : name;
+  }
   emitSelection() { this.selectionChange.emit([...this.selected]); }
   clearSelection() { this.selected.clear(); this.emitSelection(); }
   toggleRow(id: string, ev: any) { ev.target.checked ? this.selected.add(id) : this.selected.delete(id); this.emitSelection(); }

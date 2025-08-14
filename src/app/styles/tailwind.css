@@ -17,4 +17,17 @@
     .input {
         @apply border rounded px-2 py-1 text-sm;
     }
+    .nav-btn { @apply flex items-center gap-1 px-3 py-1.5 text-sm rounded text-white transition-colors; }
+    .nav-btn.active, .nav-btn:hover { @apply bg-gray-800; }
+    .tab-btn { @apply flex items-center gap-1 px-3 py-2 text-sm rounded transition-colors; }
+    .tab-btn.active, .tab-btn:hover { @apply bg-white text-gray-900; }
+    .badge { @apply text-xs px-2 py-0.5 rounded-full; }
+    .badge--ready { @apply bg-green-100 text-green-800; }
+    .badge--processing { @apply bg-yellow-100 text-yellow-800; }
+    .badge--error { @apply bg-red-100 text-red-800; }
+    .badge--reviewed { @apply bg-gray-200 text-gray-700; }
+    /* Legacy aliases used in some components */
+    .badge-processing { @apply badge--processing; }
+    .badge-error { @apply badge--error; }
+    .badge-ready { @apply badge--ready; }
 }

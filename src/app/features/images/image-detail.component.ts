@@ -7,11 +7,12 @@ import { PreviewPaneComponent } from './preview-pane.component';
 import { DataPaneComponent } from './data-pane.component';
 import { OcrPaneComponent } from './ocr-pane.component';
 import { HistoryPaneComponent } from './history-pane.component';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   standalone: true,
   selector: 'app-image-detail',
-  imports: [CommonModule, PreviewPaneComponent, DataPaneComponent, OcrPaneComponent, HistoryPaneComponent],
+  imports: [CommonModule, PreviewPaneComponent, DataPaneComponent, OcrPaneComponent, HistoryPaneComponent, LucideAngularModule],
   template: `
   <ng-container *ngIf="bundle() as b; else noSelection">
     <!-- Summary bar -->
@@ -30,16 +31,16 @@ import { HistoryPaneComponent } from './history-pane.component';
     <!-- Tabs -->
     <div class="border-b bg-gray-50 flex items-center gap-1 px-4">
       <button [class.active]="tab() === 'preview'" (click)="tab.set('preview')" class="tab-btn">
-        <svg class="w-4 h-4"><!-- eye icon --></svg><span>Preview</span>
+        <i-lucide name="eye" class="w-4 h-4"></i-lucide><span>Preview</span>
       </button>
       <button [class.active]="tab() === 'data'" (click)="tab.set('data')" class="tab-btn">
-        <svg class="w-4 h-4"><!-- pencil icon --></svg><span>Data</span>
+        <i-lucide name="edit-3" class="w-4 h-4"></i-lucide><span>Data</span>
       </button>
       <button [class.active]="tab() === 'ocr'" (click)="tab.set('ocr')" class="tab-btn">
-        <svg class="w-4 h-4"><!-- code icon --></svg><span>OCR</span>
+        <i-lucide name="code" class="w-4 h-4"></i-lucide><span>OCR</span>
       </button>
       <button [class.active]="tab() === 'history'" (click)="tab.set('history')" class="tab-btn">
-        <svg class="w-4 h-4"><!-- clock icon --></svg><span>History</span>
+        <i-lucide name="clock" class="w-4 h-4"></i-lucide><span>History</span>
       </button>
     </div>
 

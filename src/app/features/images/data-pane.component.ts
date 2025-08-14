@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output, OnChanges } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ImageBundle, NormalizedDoc } from '../../shared/models/image';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   standalone: true,
   selector: 'app-data-pane',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   host: { class: 'block h-full' },
   template: `
   <form class="h-full p-3 grid content-start gap-3 max-w-5xl" [formGroup]="form">
@@ -32,11 +33,11 @@ import { ImageBundle, NormalizedDoc } from '../../shared/models/image';
               <td class="p-1"><input class="input w-24" type="number" formControlName="quantity"></td>
               <td class="p-1"><input class="input w-28" type="number" formControlName="unitPrice"></td>
               <td class="p-1"><input class="input w-28" type="number" formControlName="amount"></td>
-              <td class="p-1"><button type="button" (click)="remove(i)">✕</button></td>
+              <td class="p-1"><button type="button" class="inline-flex items-center gap-1 text-red-600" (click)="remove(i)"><i-lucide name="trash" class="w-4 h-4"></i-lucide>✕</button></td>
             </tr>
           </tbody>
         </table>
-        <button class="mt-2 px-3 py-1.5 rounded border" type="button" (click)="add()">Add row</button>
+  <button class="mt-2 px-3 py-1.5 rounded border inline-flex items-center gap-1" type="button" (click)="add()"><i-lucide name="plus" class="w-4 h-4"></i-lucide> Add row</button>
       </div>
 
       <!-- Raw view (fallback/diagnostic) -->
@@ -87,7 +88,7 @@ import { ImageBundle, NormalizedDoc } from '../../shared/models/image';
     </ng-template>
 
     <div class="flex gap-2">
-      <button class="px-3 py-1.5 rounded bg-emerald-600 text-white" type="button" (click)="emitSave()">Save</button>
+      <button class="px-3 py-1.5 rounded bg-emerald-600 text-white inline-flex items-center gap-1" type="button" (click)="emitSave()"><i-lucide name="save" class="w-4 h-4"></i-lucide> Save</button>
     </div>
   </form>
   `
