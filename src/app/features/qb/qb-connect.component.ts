@@ -176,7 +176,7 @@ export class QbConnectComponent {
         const list = data?.QueryResponse?.Vendor || [];
         this.vendors = Array.isArray(list) ? list.slice(0, 50) : [];
       },
-      error: (e) => { this.error = e?.error?.Fault?.Error?.[0]?.Message || e?.message || 'Failed to load vendors'; },
+      error: (e) => { this.error = this.extractErr(e, 'Failed to load vendors'); },
       complete: () => { this.loading = false; }
     });
   }
@@ -186,7 +186,7 @@ export class QbConnectComponent {
     this.loading = true; this.error = '';
     this.svc.vendorByName(this.vendorName).subscribe({
       next: (data: any) => { this.vendorResult = data; },
-      error: (e) => { this.error = e?.error?.Fault?.Error?.[0]?.Message || e?.message || 'Lookup failed'; },
+      error: (e) => { this.error = this.extractErr(e, 'Lookup failed'); },
       complete: () => { this.loading = false; }
     });
   }
@@ -196,11 +196,11 @@ export class QbConnectComponent {
     this.loading = true; this.error = '';
     const body = {
       DisplayName: this.vendorName,
-      PrimaryEmailAddr: { Address: `${this.vendorName.replace(/\s+/g,'').toLowerCase()}@example.com` }
+      PrimaryEmailAddr: { Address: `${this.vendorName.replace(/\s+/g, '').toLowerCase()}@example.com` }
     };
     this.svc.createVendor(body).subscribe({
       next: (_: any) => { this.findVendor(); this.loadVendors(); },
-      error: (e) => { this.error = e?.error?.Fault?.Error?.[0]?.Message || e?.message || 'Create failed'; },
+      error: (e) => { this.error = this.extractErr(e, 'Create failed'); },
       complete: () => { this.loading = false; }
     });
   }
@@ -218,7 +218,7 @@ export class QbConnectComponent {
         const list = data?.QueryResponse?.Customer || [];
         this.customers = Array.isArray(list) ? list.slice(0, 50) : [];
       },
-      error: (e) => { this.custError = e?.error?.Fault?.Error?.[0]?.Message || e?.message || 'Failed to load customers'; },
+      error: (e) => { this.custError = this.extractErr(e, 'Failed to load customers'); },
       complete: () => { this.custLoading = false; }
     });
   }
@@ -228,7 +228,7 @@ export class QbConnectComponent {
     this.custLoading = true; this.custError = '';
     this.svc.customerByName(this.customerName).subscribe({
       next: (data: any) => { this.customerResult = data; },
-      error: (e) => { this.custError = e?.error?.Fault?.Error?.[0]?.Message || e?.message || 'Lookup failed'; },
+      error: (e) => { this.custError = this.extractErr(e, 'Lookup failed'); },
       complete: () => { this.custLoading = false; }
     });
   }
@@ -236,14 +236,38 @@ export class QbConnectComponent {
   createCustomer() {
     if (!this.customerName) return;
     this.custLoading = true; this.custError = '';
-    const body = {
-      DisplayName: this.customerName,
-      PrimaryEmailAddr: { Address: `${this.customerName.replace(/\s+/g,'').toLowerCase()}@example.com` }
-    };
-    this.svc.createCustomer(body).subscribe({
-      next: (_: any) => { this.findCustomer(); this.loadCustomers(); },
-      error: (e) => { this.custError = e?.error?.Fault?.Error?.[0]?.Message || e?.message || 'Create failed'; },
-      complete: () => { this.custLoading = false; }
+    const name = this.customerName.trim();
+    if (!name) { this.custLoading = false; return; }
+    // First check if exists to avoid duplicate-name 400s
+    this.svc.customerByName(name).subscribe({
+      next: (data: any) => {
+        const exists = (data?.QueryResponse?.Customer || []).length > 0;
+        if (exists) {
+          this.customerResult = data; // show match
+          this.custLoading = false;
+        } else {
+          const body = {
+            DisplayName: name,
+            PrimaryEmailAddr: { Address: `${name.replace(/\s+/g, '').toLowerCase()}@example.com` }
+          };
+          this.svc.createCustomer(body).subscribe({
+            next: (_: any) => { this.findCustomer(); this.loadCustomers(); },
+            error: (e) => { this.custError = this.extractErr(e, 'Create failed'); },
+            complete: () => { this.custLoading = false; }
+          });
+        }
+      },
+      error: (e) => { this.custError = this.extractErr(e, 'Lookup failed'); this.custLoading = false; }
     });
+  }
+
+  private extractErr(e: any, fallback: string) {
+    try {
+      if (!e) return fallback;
+      const data = e.error ?? e;
+      if (typeof data === 'string') return data;
+      const msg = data?.Fault?.Error?.[0]?.Message || data?.error || e?.message;
+      return msg || fallback;
+    } catch { return fallback; }
   }
 }
