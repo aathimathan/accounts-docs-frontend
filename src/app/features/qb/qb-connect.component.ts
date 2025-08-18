@@ -30,7 +30,7 @@ import { FormsModule } from '@angular/forms';
       </div>
       <ng-template #not>
         <div class="text-gray-600 mb-2">Not connected</div>
-        <button class="px-3 py-1.5 rounded bg-blue-600 text-white inline-flex items-center gap-2" (click)="connect()">
+  <button class="px-3 py-1.5 rounded bg-blue-600 text-white inline-flex items-center gap-2" (click)="connectPopup()">
           <i-lucide name="link" class="w-4 h-4"></i-lucide>
           <span>Connect</span>
         </button>
@@ -167,6 +167,21 @@ export class QbConnectComponent {
   constructor() { this.refresh(); this.loadVendors(); this.loadCompany(); this.loadCustomers(); }
   refresh() { this.svc.status().subscribe(s => this.state.set(s)); }
   connect() { window.location.href = '/auth/qb'; }
+  // Optional: popup-based connect for better UX
+  connectPopup() {
+    const w = 540, h = 700;
+    const y = Math.max(0, (window.outerHeight - h) / 2 + (window.screenY || 0));
+    const x = Math.max(0, (window.outerWidth - w) / 2 + (window.screenX || 0));
+    const state = encodeURIComponent(window.location.pathname || '/qb');
+    const popup = window.open(`/auth/qb?state=${state}`, 'qb_auth', `width=${w},height=${h},left=${x},top=${y}`);
+    if (!popup) return;
+    const handler = (ev: MessageEvent) => {
+      if (!ev?.data || ev.data.type !== 'QB_AUTH_SUCCESS') return;
+      try { this.refresh(); this.loadCompany(); this.loadVendors(); this.loadCustomers(); } catch { }
+      window.removeEventListener('message', handler);
+    };
+    window.addEventListener('message', handler);
+  }
 
   loadVendors() {
     if (!this.state().connected) return;

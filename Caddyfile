@@ -1,0 +1,8 @@
+:80 {
+  root * /srv
+  @html { path *.html }
+  header @html Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  @root { path / }
+  header @root Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  file_server
+}
