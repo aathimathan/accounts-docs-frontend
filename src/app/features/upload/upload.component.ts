@@ -2,18 +2,24 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UploadService } from './upload.service';
 import { HttpEventType } from '@angular/common/http';
+import { catchError, finalize } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   standalone: true,
   selector: 'app-upload',
   imports: [CommonModule],
   template: `
-    <div class="h-full grid grid-rows-[auto,1fr]">
+    <div class="h-full grid grid-rows-[auto,1fr,auto]">
       <div class="px-3 py-2 bg-white border-b flex items-center gap-2">
         <button class="px-3 py-1.5 rounded border text-sm" (click)="fileInput.click()">Choose Files</button>
-        <input #fileInput type="file" class="hidden" multiple (change)="onFiles($event)" />
+        <input #fileInput type="file" class="hidden" multiple (change)="onFiles($event); fileInput.value='';" />
         <div class="text-xs text-gray-500">or drag & drop below</div>
-        <div class="ml-auto text-xs text-gray-500">Processed: <span>{{processed}}</span> • Failed: <span>{{failed}}</span></div>
+        <button class="px-3 py-1.5 rounded border text-sm" (click)="dirInput.click()">Folder Upload</button>
+        <input #dirInput type="file" class="hidden" webkitdirectory multiple (change)="onDir($event); dirInput.value='';" />
+        <div class="ml-auto text-xs text-gray-500">
+          Processed: <span>{{processed}}</span> • Failed: <span>{{failed}}</span>
+        </div>
       </div>
 
       <div class="m-4 border-2 border-dashed rounded bg-white flex-1 flex items-center justify-center text-gray-500"
@@ -24,20 +30,25 @@ import { HttpEventType } from '@angular/common/http';
 
       <div class="p-4 overflow-auto">
         <table class="w-full text-sm">
-          <thead class="border-b"><tr class="[&>th]:text-left [&>th]:px-2 [&>th]:py-1">
-            <th>File</th><th>Status</th><th>Progress</th><th>ETA</th><th>Actions</th>
-          </tr></thead>
+          <thead class="border-b">
+            <tr class="[&>th]:text-left [&>th]:px-2 [&>th]:py-1">
+              <th>File</th><th>Status</th><th>Progress</th><th>ETA</th><th>Actions</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr *ngFor="let j of jobs" class="[&>td]:px-2 [&>td]:py-2 border-b">
+            <tr *ngFor="let j of jobs; trackBy: trackById" class="[&>td]:px-2 [&>td]:py-2 border-b">
               <td>{{j.name}}</td>
-              <td>{{j.status}}</td>
+              <td>
+                {{j.status}}
+                <span *ngIf="j.error" class="text-red-600 ml-1">- {{j.error}}</span>
+              </td>
               <td>
                 <div class="h-2 bg-gray-200 rounded overflow-hidden w-56">
                   <div [class.bg-red-500]="j.status==='failed'" [class.bg-blue-600]="j.status!=='failed'" class="h-full" [style.width.%]="j.progress"></div>
                 </div>
               </td>
               <td>{{j.eta||'--'}}</td>
-              <td>
+              <td class="whitespace-nowrap">
                 <button *ngIf="j.status==='failed'" class="px-2 py-1 border rounded text-xs" (click)="retry(j)">Retry</button>
                 <button *ngIf="j.status==='uploading'" class="px-2 py-1 border rounded text-xs" (click)="cancel(j)">Cancel</button>
               </td>
@@ -46,51 +57,84 @@ import { HttpEventType } from '@angular/common/http';
         </table>
       </div>
     </div>
-    `
+  `
 })
 export class UploadComponent {
   private up = inject(UploadService);
   jobs: any[] = [];
+
   // Concurrency control
   private inFlight = 0;
-  private readonly maxConcurrent = 3; // tune as needed
+  private readonly maxConcurrent = 2; // reduce concurrency to avoid OCR/HTTP throttling
   private pumpScheduled = false;
+
   get processed() { return this.jobs.filter(j => j.status === 'processed').length; }
   get failed() { return this.jobs.filter(j => j.status === 'failed').length; }
+  trackById = (_: number, j: any) => j.id;
 
-  onFiles(e: any) { const files: File[] = Array.from(e.target.files || []); if (files.length) this.addJobs(files); }
-  onDrop(e: DragEvent) { e.preventDefault(); const files = Array.from(e.dataTransfer?.files || []); if (files.length) this.addJobs(files as File[]); }
+  onFiles(e: any) {
+    const files: File[] = Array.from(e.target.files || []);
+    if (files.length) this.addJobs(files);
+  }
+
+  onDrop(e: DragEvent) {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer?.files || []);
+    if (files.length) this.addJobs(files as File[]);
+  }
+
+  onDir(e: any) {
+    const files: File[] = Array.from(e.target?.files || []);
+    if (files.length) this.addJobs(files);
+  }
 
   addJobs(files: File[]) {
-    for (const f of files) {
-      this.jobs.unshift({ id: Date.now() + Math.random(), name: f.name, size: f.size, status: 'queued', progress: 0, eta: '--', error: null, timer: null, file: f });
+    const now = Date.now();
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      this.jobs.unshift({
+        id: `${now}-${i}-${Math.random()}`,
+        name: f.name,
+        size: f.size,
+        status: 'queued',
+        progress: 0,
+        eta: '--',
+        error: null,
+        sub: null,
+        file: f
+      });
     }
-    // start queued with concurrency limiting
     this.schedulePump();
   }
 
   private startUpload(job: any) {
     this.inFlight++;
-    job.status = 'uploading'; job.progress = 0; job.eta = '--';
-    const sub = this.up.upload(job.file).subscribe({
-      next: (event: any) => {
-        if (event.type === HttpEventType.UploadProgress && event.total) {
-          job.progress = Math.round((event.loaded / event.total) * 100);
-        } else if (event.type === HttpEventType.Response) {
-          job.progress = 100; job.status = 'processed';
-        }
-      },
-      error: (err: any) => {
+    job.status = 'uploading';
+    job.progress = 0;
+    job.error = null;
+    job.eta = '--';
+
+    job.sub = this.up.upload(job.file).pipe(
+      catchError((err: any) => {
         job.status = 'failed';
         job.error = (err?.error?.error || err?.message || 'Upload failed');
-      },
-      complete: () => {
+        return of(null); // allow finalize to run
+      }),
+      finalize(() => {
+        // ALWAYS run after success or error
         job.sub = null;
         this.inFlight = Math.max(0, this.inFlight - 1);
         this.schedulePump();
+      })
+    ).subscribe(event => {
+      if (!event) return;
+      if (event.type === HttpEventType.UploadProgress && event.total) {
+        job.progress = Math.round((event.loaded / event.total) * 100);
+      } else if (event.type === HttpEventType.Response) {
+        job.progress = 100;
+        job.status = 'processed';
       }
     });
-    job.sub = sub;
   }
 
   private pumpQueue() {
@@ -105,17 +149,24 @@ export class UploadComponent {
   private schedulePump() {
     if (this.pumpScheduled) return;
     this.pumpScheduled = true;
-    // slight delay to batch rapid queue updates and avoid connection thundering herd
     setTimeout(() => this.pumpQueue(), 50);
   }
 
-  retry(job: any) { job.status = 'queued'; job.error = null; this.schedulePump(); }
+  retry(job: any) {
+    if (job.sub) { try { job.sub.unsubscribe(); } catch { } }
+    job.status = 'queued';
+    job.error = null;
+    job.progress = 0;
+    this.schedulePump();
+  }
+
   cancel(job: any) {
     try { job.sub?.unsubscribe?.(); } catch { }
     if (job.status === 'uploading') {
       this.inFlight = Math.max(0, this.inFlight - 1);
       this.schedulePump();
     }
-    job.status = 'failed'; job.error = 'Canceled';
+    job.status = 'failed';
+    job.error = 'Canceled';
   }
 }

@@ -40,6 +40,10 @@ import {
           <i-lucide [img]="UploadCloudIcon" class="w-5 h-5"></i-lucide>
           <span>Upload</span>
         </a>
+        <a routerLink="/accounts" routerLinkActive="active" class="nav-btn">
+          <i-lucide [img]="FileTextIcon" class="w-5 h-5"></i-lucide>
+          <span>Accounts</span>
+        </a>
         <a routerLink="/exports" routerLinkActive="active" class="nav-btn">
           <i-lucide [img]="SendIcon" class="w-5 h-5"></i-lucide>
           <span>Exports</span>
@@ -64,6 +68,7 @@ import {
       <nav class="flex flex-col p-2">
         <a routerLink="/images" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Images</a>
         <a routerLink="/upload" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Upload</a>
+  <a routerLink="/accounts" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Accounts</a>
         <a routerLink="/exports" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Exports</a>
         <a routerLink="/qb" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">QuickBooks</a>
         <a routerLink="/settings" routerLinkActive="active" class="nav-btn--mobile" (click)="open.set(false)">Settings</a>

@@ -2,12 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { QbService } from './qb.service';
 import { LucideAngularModule } from 'lucide-angular';
-import { FormsModule } from '@angular/forms';
+// No FormsModule needed; we use plain input bindings
 
 @Component({
   standalone: true,
   selector: 'app-qb-connect',
-  imports: [CommonModule, LucideAngularModule, FormsModule],
+  imports: [CommonModule, LucideAngularModule],
   template: `
   <div class="p-6 max-w-4xl grid gap-6">
     <h2 class="text-lg font-semibold">QuickBooks Connection</h2>
@@ -45,10 +45,10 @@ import { FormsModule } from '@angular/forms';
       <div class="flex flex-wrap gap-2 items-end">
         <label class="grid text-sm">
           <span class="text-gray-600">Search by name</span>
-          <input class="border rounded px-2 py-1" [(ngModel)]="vendorName" placeholder="Acme Supplies" />
+          <input class="border rounded px-2 py-1" [value]="vendorName()" (input)="vendorName.set($any($event.target).value)" placeholder="Acme Supplies" />
         </label>
         <button class="px-3 py-1.5 rounded bg-slate-700 text-white text-sm" (click)="findVendor()">Find</button>
-        <button class="px-3 py-1.5 rounded bg-green-600 text-white text-sm" (click)="createVendor()" [disabled]="!vendorName">Create Vendor</button>
+  <button class="px-3 py-1.5 rounded bg-green-600 text-white text-sm" (click)="createVendor()" [disabled]="!vendorName()">Create Vendor</button>
         <span class="text-sm text-red-600" *ngIf="error">{{error}}</span>
         <span class="text-sm text-gray-500" *ngIf="loading">Loading…</span>
       </div>
@@ -100,10 +100,10 @@ import { FormsModule } from '@angular/forms';
       <div class="flex flex-wrap gap-2 items-end">
         <label class="grid text-sm">
           <span class="text-gray-600">Search by name</span>
-          <input class="border rounded px-2 py-1" [(ngModel)]="customerName" placeholder="Contoso LLC" />
+          <input class="border rounded px-2 py-1" [value]="customerName()" (input)="customerName.set($any($event.target).value)" placeholder="Contoso LLC" />
         </label>
         <button class="px-3 py-1.5 rounded bg-slate-700 text-white text-sm" (click)="findCustomer()">Find</button>
-        <button class="px-3 py-1.5 rounded bg-green-600 text-white text-sm" (click)="createCustomer()" [disabled]="!customerName">Create Customer</button>
+  <button class="px-3 py-1.5 rounded bg-green-600 text-white text-sm" (click)="createCustomer()" [disabled]="!customerName()">Create Customer</button>
         <span class="text-sm text-red-600" *ngIf="custError">{{custError}}</span>
         <span class="text-sm text-gray-500" *ngIf="custLoading">Loading…</span>
       </div>
@@ -151,21 +151,21 @@ import { FormsModule } from '@angular/forms';
 export class QbConnectComponent {
   private svc = inject(QbService);
   state = signal<{ connected: boolean; company?: string; env?: string }>({ connected: false });
-  vendorName = '';
+  vendorName = signal('');
   vendors: any[] = [];
   vendorResult: any = null;
   loading = false;
   error = '';
   companyInfo: any = null;
   // customers
-  customerName = '';
+  customerName = signal('');
   customers: any[] = [];
   customerResult: any = null;
   custLoading = false;
   custError = '';
 
   constructor() { this.refresh(); this.loadVendors(); this.loadCompany(); this.loadCustomers(); }
-  refresh() { this.svc.status().subscribe(s => this.state.set(s)); }
+  refresh() { this.svc.status().subscribe((s: { connected: boolean; company?: string; env?: string }) => this.state.set(s)); }
   connect() { window.location.href = '/auth/qb'; }
   // Optional: popup-based connect for better UX
   connectPopup() {
@@ -191,38 +191,38 @@ export class QbConnectComponent {
         const list = data?.QueryResponse?.Vendor || [];
         this.vendors = Array.isArray(list) ? list.slice(0, 50) : [];
       },
-      error: (e) => { this.error = this.extractErr(e, 'Failed to load vendors'); },
+      error: (e: any) => { this.error = this.extractErr(e, 'Failed to load vendors'); },
       complete: () => { this.loading = false; }
     });
   }
 
   findVendor() {
-    if (!this.vendorName) return;
+    if (!this.vendorName()) return;
     this.loading = true; this.error = '';
-    this.svc.vendorByName(this.vendorName).subscribe({
+    this.svc.vendorByName(this.vendorName()).subscribe({
       next: (data: any) => { this.vendorResult = data; },
-      error: (e) => { this.error = this.extractErr(e, 'Lookup failed'); },
+      error: (e: any) => { this.error = this.extractErr(e, 'Lookup failed'); },
       complete: () => { this.loading = false; }
     });
   }
 
   createVendor() {
-    if (!this.vendorName) return;
+    if (!this.vendorName()) return;
     this.loading = true; this.error = '';
     const body = {
-      DisplayName: this.vendorName,
-      PrimaryEmailAddr: { Address: `${this.vendorName.replace(/\s+/g, '').toLowerCase()}@example.com` }
+      DisplayName: this.vendorName(),
+      PrimaryEmailAddr: { Address: `${this.vendorName().replace(/\s+/g, '').toLowerCase()}@example.com` }
     };
     this.svc.createVendor(body).subscribe({
       next: (_: any) => { this.findVendor(); this.loadVendors(); },
-      error: (e) => { this.error = this.extractErr(e, 'Create failed'); },
+      error: (e: any) => { this.error = this.extractErr(e, 'Create failed'); },
       complete: () => { this.loading = false; }
     });
   }
 
   loadCompany() {
     if (!this.state().connected) return;
-    this.svc.company().subscribe({ next: (info) => this.companyInfo = info });
+    this.svc.company().subscribe({ next: (info: any) => this.companyInfo = info });
   }
 
   loadCustomers() {
@@ -233,25 +233,25 @@ export class QbConnectComponent {
         const list = data?.QueryResponse?.Customer || [];
         this.customers = Array.isArray(list) ? list.slice(0, 50) : [];
       },
-      error: (e) => { this.custError = this.extractErr(e, 'Failed to load customers'); },
+      error: (e: any) => { this.custError = this.extractErr(e, 'Failed to load customers'); },
       complete: () => { this.custLoading = false; }
     });
   }
 
   findCustomer() {
-    if (!this.customerName) return;
+    if (!this.customerName()) return;
     this.custLoading = true; this.custError = '';
-    this.svc.customerByName(this.customerName).subscribe({
+    this.svc.customerByName(this.customerName()).subscribe({
       next: (data: any) => { this.customerResult = data; },
-      error: (e) => { this.custError = this.extractErr(e, 'Lookup failed'); },
+      error: (e: any) => { this.custError = this.extractErr(e, 'Lookup failed'); },
       complete: () => { this.custLoading = false; }
     });
   }
 
   createCustomer() {
-    if (!this.customerName) return;
+    if (!this.customerName()) return;
     this.custLoading = true; this.custError = '';
-    const name = this.customerName.trim();
+    const name = this.customerName().trim();
     if (!name) { this.custLoading = false; return; }
     // First check if exists to avoid duplicate-name 400s
     this.svc.customerByName(name).subscribe({
@@ -267,12 +267,12 @@ export class QbConnectComponent {
           };
           this.svc.createCustomer(body).subscribe({
             next: (_: any) => { this.findCustomer(); this.loadCustomers(); },
-            error: (e) => { this.custError = this.extractErr(e, 'Create failed'); },
+            error: (e: any) => { this.custError = this.extractErr(e, 'Create failed'); },
             complete: () => { this.custLoading = false; }
           });
         }
       },
-      error: (e) => { this.custError = this.extractErr(e, 'Lookup failed'); this.custLoading = false; }
+      error: (e: any) => { this.custError = this.extractErr(e, 'Lookup failed'); this.custLoading = false; }
     });
   }
 

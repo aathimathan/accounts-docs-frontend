@@ -38,6 +38,7 @@ import { ExportService } from '../exports/export.service';
       <div class="ml-auto flex items-center gap-2" *ngIf="selected().length">
         <button class="btn" (click)="bulkExport()">Export Selected ({{selected().length}})</button>
         <button class="btn" style="background-color: var(--color-border); color: var(--color-text)" (click)="clearSelection()">Clear</button>
+        <button class="btn btn-danger" (click)="deleteSelected()">Delete Selected</button>
       </div>
     </div>
 
@@ -54,7 +55,7 @@ import { ExportService } from '../exports/export.service';
       </app-image-list>
      </div>
 
-      <app-image-detail [imageId]="selectedId()" (exportQB)="onExport($event)"></app-image-detail>
+  <app-image-detail class="min-w-0 min-h-0 h-full" [imageId]="selectedId()" (exportQB)="onExport($event)"></app-image-detail>
     </div>
   </div>
   `
@@ -82,6 +83,19 @@ export class ImagesPageComponent {
   clearField(k: string) { this.params.update(s => { const o = { ...s }; delete (o as any)[k]; return o; }); }
   onSelect(id: string) { this.selectedId.set(id); }
   clearSelection() { this.selected.set([]); }
+  deleteSelected() {
+    const ids = this.selected();
+    if (!ids.length) return;
+    if (!confirm(`Delete ${ids.length} file(s)? This cannot be undone.`)) return;
+    this.api.deleteMany(ids).subscribe({
+      next: () => {
+        // Refresh list, clear selection
+        this.selected.set([]);
+        // trigger a reload by updating params (same values) to retrigger effect
+        this.params.update(s => ({ ...s }));
+      }
+    });
+  }
   bulkExport() {
     const ids = this.selected();
     if (ids.length) this.exports.bulkQB(ids).subscribe(() => this.selected.set([]));

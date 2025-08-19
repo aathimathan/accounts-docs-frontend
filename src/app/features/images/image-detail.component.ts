@@ -13,6 +13,7 @@ import { LucideAngularModule } from 'lucide-angular';
   standalone: true,
   selector: 'app-image-detail',
   imports: [CommonModule, PreviewPaneComponent, DataPaneComponent, OcrPaneComponent, HistoryPaneComponent, LucideAngularModule],
+  host: { class: 'block h-full min-w-0 min-h-0' },
   template: `
   <ng-container *ngIf="bundle() as b; else noSelection">
     <!-- Summary bar -->
@@ -45,12 +46,14 @@ import { LucideAngularModule } from 'lucide-angular';
     </div>
 
     <!-- Tab content -->
-    <div class="h-[calc(100%-4.5rem)] overflow-auto">
-      <app-preview-pane *ngIf="tab()==='preview'" [bundle]="b"></app-preview-pane>
-      <app-data-pane *ngIf="tab()==='data'" [bundle]="b" (save)="save($event)"></app-data-pane>
-      <app-ocr-pane *ngIf="tab()==='ocr'" [ocr]="b.ocr"></app-ocr-pane>
-      <app-history-pane *ngIf="tab()==='history'" [audit]="b.audit"></app-history-pane>
-    </div>
+    <!-- parent that hosts all panes -->
+<div class="h-[calc(100%-4.5rem)] flex-1 min-h-0 min-w-0 overflow-hidden">
+  <app-preview-pane *ngIf="tab()==='preview'" [bundle]="b"></app-preview-pane>
+  <app-data-pane    *ngIf="tab()==='data'"    [bundle]="b" (save)="save($event)"></app-data-pane>
+  <app-ocr-pane     *ngIf="tab()==='ocr'"     [ocr]="b.ocr"></app-ocr-pane>
+  <app-history-pane *ngIf="tab()==='history'" [audit]="b.audit"></app-history-pane>
+</div>
+
   </ng-container>
   <ng-template #noSelection>
     <div class="h-full flex items-center justify-center text-gray-400">Select an image to view details</div>

@@ -4,14 +4,15 @@ import { CommonModule } from '@angular/common';
 @Component({
   standalone: true,
   selector: 'app-ocr-pane',
-  host: { class: 'block h-full' },
+  host: { class: 'block h-full w-full min-w-0 min-h-0' },
   imports: [CommonModule],
   template: `
-  <div class="h-full flex flex-col p-3">
-    <div class="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
-      <pre class="bg-gray-900 text-gray-100 p-3 rounded text-xs whitespace-pre-wrap break-words">{{ ocr | json }}</pre>
+    <!-- Fill all available space and scroll inside -->
+    <div class="h-full w-full min-w-0 min-h-0 overflow-auto bg-gray-900 text-gray-100 rounded">
+      <pre class="whitespace-pre font-mono text-xs p-3">
+{{ ocr | json }}
+      </pre>
     </div>
-  </div>
   `
 })
 export class OcrPaneComponent {

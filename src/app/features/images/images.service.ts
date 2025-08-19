@@ -22,4 +22,12 @@ export class ImagesService {
     reanalyze(id: string) {
         return this.http.post<ImageBundle>(`/images/${id}/reanalyze`, {});
     }
+
+    deleteOne(id: string) {
+        return this.http.delete<void>(`/images/${id}`);
+    }
+
+    deleteMany(ids: string[]) {
+        return this.http.post<{ deleted: number }>(`/images/delete`, { ids });
+    }
 }
