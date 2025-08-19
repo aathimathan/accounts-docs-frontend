@@ -9,10 +9,10 @@ import { ImagesService } from '../images/images.service';
 type TBRow = { account: string; debit: number; credit: number };
 
 @Component({
-  standalone: true,
-  selector: 'app-trial-balance',
-  imports: [CommonModule],
-  template: `
+    standalone: true,
+    selector: 'app-trial-balance',
+    imports: [CommonModule],
+    template: `
   <div class="h-full grid grid-rows-[auto,1fr]">
     <div class="bg-white shadow-sm border-b px-4 py-3 flex items-center gap-3">
       <div class="text-lg font-semibold">Trial Balance</div>
@@ -49,34 +49,34 @@ type TBRow = { account: string; debit: number; credit: number };
   `
 })
 export class TrialBalanceComponent {
-  private images = inject(ImagesService);
-  today = new Date().toISOString().slice(0, 10);
+    private images = inject(ImagesService);
+    today = new Date().toISOString().slice(0, 10);
 
-  // Placeholder: fetch first page of images and synthesize TB
-  private items = signal<any[]>([]);
+    // Placeholder: fetch first page of images and synthesize TB
+    private items = signal<any[]>([]);
 
-  constructor() {
-    this.images.list({ page: 1, size: 500 }).subscribe(({ items }) => {
-      this.items.set(items);
-    });
-  }
-
-  // Build TB rows from available image data (replace with your actual accounting logic)
-  rows = computed<TBRow[]>(() => {
-    const acc = new Map<string, { debit: number; credit: number }>();
-    // For now, attribute amounts to a generic revenue/expense based on docType
-    for (const it of this.items()) {
-      const amount = Number(it.totalAmount || 0) || 0;
-      if (!amount) continue;
-      const key = (String(it.docType || '').toLowerCase().includes('invoice')) ? 'Accounts Receivable' : 'Other Expense';
-      const e = acc.get(key) || { debit: 0, credit: 0 };
-      if (key === 'Accounts Receivable') e.debit += amount; else e.credit += amount;
-      acc.set(key, e);
+    constructor() {
+        this.images.list({ page: 1, size: 500 }).subscribe(({ items }) => {
+            this.items.set(items);
+        });
     }
-    return Array.from(acc.entries()).map(([account, v]) => ({ account, debit: v.debit, credit: v.credit }));
-  });
 
-  totals = computed(() => {
-    let d = 0, c = 0; for (const r of this.rows()) { d += r.debit; c += r.credit; } return { debit: d, credit: c };
-  });
+    // Build TB rows from available image data (replace with your actual accounting logic)
+    rows = computed<TBRow[]>(() => {
+        const acc = new Map<string, { debit: number; credit: number }>();
+        // For now, attribute amounts to a generic revenue/expense based on docType
+        for (const it of this.items()) {
+            const amount = Number(it.totalAmount || 0) || 0;
+            if (!amount) continue;
+            const key = (String(it.docType || '').toLowerCase().includes('invoice')) ? 'Accounts Receivable' : 'Other Expense';
+            const e = acc.get(key) || { debit: 0, credit: 0 };
+            if (key === 'Accounts Receivable') e.debit += amount; else e.credit += amount;
+            acc.set(key, e);
+        }
+        return Array.from(acc.entries()).map(([account, v]) => ({ account, debit: v.debit, credit: v.credit }));
+    });
+
+    totals = computed(() => {
+        let d = 0, c = 0; for (const r of this.rows()) { d += r.debit; c += r.credit; } return { debit: d, credit: c };
+    });
 }
