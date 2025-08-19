@@ -7,6 +7,7 @@ export interface ImageRow {
     hasErrors?: boolean;
     totalAmount?: number;
     previewUrl?: string;
+    currency?: string;
 }
 
 export interface OcrResult { [k: string]: any; }

@@ -2,6 +2,8 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ImagesService } from '../images/images.service';
+import { FxService } from '../../shared/services/fx.service';
+import { FxSettingsModalComponent } from '../../shared/components/fx-settings-modal/fx-settings-modal.component';
 
 // Trial Balance (simplified):
 // Use docType direction:
@@ -16,15 +18,18 @@ type TBNode = TBRow & { items: TBItem[] };
 @Component({
     standalone: true,
     selector: 'app-trial-balance',
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, FxSettingsModalComponent],
     template: `
   <div class="h-full grid grid-rows-[auto,1fr]">
     <div class="bg-white shadow-sm border-b px-4 py-3 flex items-center gap-3">
       <div class="text-lg font-semibold">Trial Balance</div>
+      <div class="text-sm text-gray-600">Base: {{ base() }}</div>
+      <button class="ml-2 px-2 py-1 border rounded text-xs" (click)="openFx()">Change</button>
       <div class="ml-auto text-sm text-gray-600">As of {{today}}</div>
     </div>
 
     <div class="p-4 overflow-auto bg-white">
+      <app-fx-settings-modal [open]="fxOpen" [extraCurrencies]="currenciesUsed()" (closed)="onFxClosed($event)"></app-fx-settings-modal>
       <!-- Totals table -->
       <table class="w-full text-sm mb-6">
         <thead class="border-b">
@@ -71,7 +76,7 @@ type TBNode = TBRow & { items: TBItem[] };
                   <th class="text-left py-1 px-2">Document</th>
                   <th class="text-left py-1 px-2">Type</th>
                   <th class="text-right py-1 px-2">Side</th>
-                  <th class="text-right py-1 px-2">Amount</th>
+                  <th class="text-right py-1 px-2">Amount ({{ base() }})</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,10 +101,21 @@ type TBNode = TBRow & { items: TBItem[] };
 })
 export class TrialBalanceComponent {
     private images = inject(ImagesService);
+    private fx = inject(FxService);
     today = new Date().toISOString().slice(0, 10);
 
     // Placeholder: fetch first page of images and synthesize TB
     private items = signal<any[]>([]);
+    fxOpen = signal(false);
+    base = computed(() => this.fx.baseCurrency());
+    currenciesUsed = computed(() => {
+        const set = new Set<string>();
+        for (const it of this.items()) {
+            const c = (it as any).currency;
+            if (c) set.add(String(c).toUpperCase());
+        }
+        return Array.from(set.values());
+    });
 
     constructor() {
         this.images.list({ page: 1, size: 500 }).subscribe(({ items }) => {
@@ -112,12 +128,14 @@ export class TrialBalanceComponent {
         const map = new Map<string, { debit: number; credit: number; items: TBItem[] }>();
         const push = (account: string, side: 'debit' | 'credit', src: any, amount: number) => {
             const node = map.get(account) || { debit: 0, credit: 0, items: [] };
-            if (side === 'debit') node.debit += amount; else node.credit += amount;
+            // Convert from source currency into base
+            const converted = this.fx.convert(amount, (src as any).currency);
+            if (side === 'debit') node.debit += converted; else node.credit += converted;
             node.items.push({
                 id: String(src.id || ''),
                 filename: String(src.originalFilename || ''),
                 docType: src.docType,
-                amount,
+                amount: converted,
                 side
             });
             map.set(account, node);
@@ -152,5 +170,10 @@ export class TrialBalanceComponent {
         const next = new Set(this.expanded());
         if (next.has(accName)) next.delete(accName); else next.add(accName);
         this.expanded.set(next);
+    }
+
+    openFx() { this.fxOpen.set(true); }
+    onFxClosed(_applied: boolean) {
+        // Nothing special; nodes recompute via fx signals
     }
 }
