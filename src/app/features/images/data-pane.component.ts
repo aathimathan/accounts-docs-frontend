@@ -3,94 +3,67 @@ import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ImageBundle, NormalizedDoc } from '../../shared/models/image';
 import { LucideAngularModule } from 'lucide-angular';
+import { InvoicePaneComponent } from './panes/invoice-pane.component';
+import { PoPaneComponent } from './panes/po-pane.component';
 
 @Component({
   standalone: true,
   selector: 'app-data-pane',
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, InvoicePaneComponent, PoPaneComponent],
   host: { class: 'block h-full' },
   template: `
   <!-- Two-pane split: top (editor) scrollable, bottom (JSON) fills the rest -->
-  <form class="h-full p-3 grid grid-rows-[minmax(0,1fr)] gap-3" [formGroup]="form">
+  <div class="h-full p-3 grid grid-rows-[minmax(0,1fr)] gap-3">
     <!-- Top: editor area (scrollable) -->
     <div class="min-h-0 overflow-y-auto">
-      <ng-container *ngIf="isInvoiceLike(); else generic">
-        <div class="grid grid-cols-3 gap-3">
-          <label class="grid gap-1">Vendor <input class="input" formControlName="vendor"></label>
-          <label class="grid gap-1">Invoice # <input class="input" formControlName="invoiceNumber"></label>
-          <label class="grid gap-1">Date <input class="input" type="date" formControlName="invoiceDate"></label>
-          <label class="grid gap-1">Currency <input class="input" formControlName="currency"></label>
-          <label class="grid gap-1">Total <input class="input" type="number" formControlName="total"></label>
-          <label class="grid gap-1">Customer <input class="input" formControlName="customer"></label>
-        </div>
-
-        <div>
-          <div class="font-medium mb-2">Items</div>
-          <table class="w-full text-sm">
-            <thead><tr class="[&>th]:text-left [&>th]:px-2 [&>th]:py-1 border-b">
-              <th>Description</th><th>Qty</th><th>Unit</th><th>Amount</th><th></th>
-            </tr></thead>
-            <tbody formArrayName="lines">
-              <tr *ngFor="let g of lines.controls; let i = index" [formGroupName]="i" class="border-b">
-                <td class="p-1"><input class="input w-full" formControlName="description"></td>
-                <td class="p-1"><input class="input w-24" type="number" formControlName="quantity"></td>
-                <td class="p-1"><input class="input w-28" type="number" formControlName="unitPrice"></td>
-                <td class="p-1"><input class="input w-28" type="number" formControlName="amount"></td>
-                <td class="p-1"><button type="button" class="inline-flex items-center gap-1 text-red-600" (click)="remove(i)"><i-lucide name="trash" class="w-4 h-4"></i-lucide>✕</button></td>
-              </tr>
-            </tbody>
-          </table>
-          <button class="mt-2 px-3 py-1.5 rounded border inline-flex items-center gap-1" type="button" (click)="add()"><i-lucide name="plus" class="w-4 h-4"></i-lucide> Add row</button>
-        </div>
-      </ng-container>
-
-      <ng-template #generic>
-        <div class="grid gap-3">
-          <div class="text-sm text-gray-600">Document type: {{bundle.image.docType || 'unknown'}}</div>
-          <div *ngIf="bankLike() as b">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div><div class="text-xs text-gray-500">Account #</div><div class="font-medium">{{b.accountNumber || '-'}}
-              </div></div>
-              <div><div class="text-xs text-gray-500">Period</div><div class="font-medium">{{b.statementPeriod || '-'}}
-              </div></div>
-              <div><div class="text-xs text-gray-500">Opening</div><div class="font-medium">{{b.openingBalance ?? '-'}}
-              </div></div>
-              <div><div class="text-xs text-gray-500">Closing</div><div class="font-medium">{{b.closingBalance ?? '-'}}
-              </div></div>
-            </div>
-            <div class="mt-3">
-              <div class="font-medium mb-2">Transactions</div>
-              <div class="overflow-auto border rounded">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-gray-50"><tr class="[&>th]:text-left [&>th]:px-2 [&>th]:py-1 border-b">
-                    <th class="w-32">Date</th><th>Description</th><th class="w-24 text-right">Debit</th><th class="w-24 text-right">Credit</th><th class="w-28 text-right">Balance</th>
-                  </tr></thead>
-                  <tbody>
-                    <tr *ngFor="let t of (b.transactions || [])" class="border-b">
-                      <td class="px-2 py-1">{{t.date || '-'}}
-                      </td>
-                      <td class="px-2 py-1">{{t.description}}</td>
-                      <td class="px-2 py-1 text-right">{{t.debit ?? ''}}</td>
-                      <td class="px-2 py-1 text-right">{{t.credit ?? ''}}</td>
-                      <td class="px-2 py-1 text-right">{{t.balance ?? ''}}</td>
-                    </tr>
-                  </tbody>
-                </table>
+      <ng-container [ngSwitch]="paneKind()">
+        <app-invoice-pane *ngSwitchCase="'invoice'" [bundle]="bundle" (save)="forwardSave($event)" (viewJson)="jsonOpen = true" />
+        <app-po-pane *ngSwitchCase="'po'" [bundle]="bundle" (save)="forwardSave($event)" (viewJson)="jsonOpen = true" />
+        <ng-container *ngSwitchDefault>
+          <div class="grid gap-3">
+            <div class="text-sm text-gray-600">Document type: {{bundle.image.docType || 'unknown'}}</div>
+            <div *ngIf="bankLike() as b">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div><div class="text-xs text-gray-500">Account #</div><div class="font-medium">{{b.accountNumber || '-'}}
+                </div></div>
+                <div><div class="text-xs text-gray-500">Period</div><div class="font-medium">{{b.statementPeriod || '-'}}
+                </div></div>
+                <div><div class="text-xs text-gray-500">Opening</div><div class="font-medium">{{b.openingBalance ?? '-'}}
+                </div></div>
+                <div><div class="text-xs text-gray-500">Closing</div><div class="font-medium">{{b.closingBalance ?? '-'}}
+                </div></div>
+              </div>
+              <div class="mt-3">
+                <div class="font-medium mb-2">Transactions</div>
+                <div class="overflow-auto border rounded">
+                  <table class="min-w-full text-xs">
+                    <thead class="bg-gray-50"><tr class="[&>th]:text-left [&>th]:px-2 [&>th]:py-1 border-b">
+                      <th class="w-32">Date</th><th>Description</th><th class="w-24 text-right">Debit</th><th class="w-24 text-right">Credit</th><th class="w-28 text-right">Balance</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr *ngFor="let t of (b.transactions || [])" class="border-b">
+                        <td class="px-2 py-1">{{t.date || '-'}}
+                        </td>
+                        <td class="px-2 py-1">{{t.description}}</td>
+                        <td class="px-2 py-1 text-right">{{t.debit ?? ''}}</td>
+                        <td class="px-2 py-1 text-right">{{t.credit ?? ''}}</td>
+                        <td class="px-2 py-1 text-right">{{t.balance ?? ''}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </ng-template>
-
-      <!-- Sticky actions to keep Save visible within the top scroll area -->
-      <div class="sticky bottom-0 bg-white pt-2 mt-3 border-t">
-        <div class="flex gap-2">
-          <button class="px-3 py-1.5 rounded bg-emerald-600 text-white inline-flex items-center gap-1" type="button" (click)="emitSave()"><i-lucide name="save" class="w-4 h-4"></i-lucide> Save</button>
-          <button class="px-3 py-1.5 rounded border inline-flex items-center gap-1" type="button" (click)="jsonOpen = true"><i-lucide name="code-2" class="w-4 h-4"></i-lucide> View JSON</button>
-        </div>
-      </div>
+          <div class="sticky bottom-0 bg-white pt-2 mt-3 border-t">
+            <div class="flex gap-2">
+              <button class="px-3 py-1.5 rounded border inline-flex items-center gap-1" type="button" (click)="jsonOpen = true"><i-lucide name="code-2" class="w-4 h-4"></i-lucide> View JSON</button>
+            </div>
+          </div>
+        </ng-container>
+      </ng-container>
     </div>
-  </form>
+  </div>
 
   <!-- JSON Modal -->
   <div *ngIf="jsonOpen" class="fixed inset-0">
@@ -167,13 +140,17 @@ export class DataPaneComponent implements OnChanges {
     })));
   }
 
-  isInvoiceLike(): boolean {
+  paneKind(): 'invoice' | 'po' | 'generic' {
+    const dt = (this.bundle?.image?.docType || '').toLowerCase();
+    if (dt.includes('po') || dt.includes('purchase')) return 'po';
+    if (dt === 'invoice_supplier' || dt === 'invoice_customer') return 'invoice';
     const n = this.bundle?.normalized as any;
-    return !!(n && (
+    const looksInvoice = !!(n && (
       n.vendor || n.invoiceNumber || typeof n.total === 'number' ||
       (Array.isArray(n?.lines) && n.lines.length) ||
       (Array.isArray(n?.items) && n.items.length)
     ));
+    return looksInvoice ? 'invoice' : 'generic';
   }
 
   bankLike(): any | null {
@@ -186,6 +163,6 @@ export class DataPaneComponent implements OnChanges {
 
   add() { this.lines.push(this.fb.group({ description: [''], quantity: [null], unitPrice: [null], amount: [null] })); }
   remove(i: number) { this.lines.removeAt(i); }
-  emitSave() { this.save.emit(this.form.value as NormalizedDoc); }
+  forwardSave(n: NormalizedDoc) { this.save.emit(n); }
 }
 

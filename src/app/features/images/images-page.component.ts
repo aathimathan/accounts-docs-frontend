@@ -23,7 +23,14 @@ import { ExportService } from '../exports/export.service';
         <input type="date" class="input" (change)="onFilter({date: $any($event.target).value})">
       </div>
       <select class="input" (change)="onFilter({doc_type: $any($event.target).value})">
-        <option value="">All Types</option><option>Invoice</option><option>Packing List</option><option>Receipt</option>
+        <option value="">All Types</option>
+        <option value="invoice_any">Invoice (Any)</option>
+        <option value="invoice_supplier">Supplier Invoice (AP)</option>
+        <option value="invoice_customer">Customer Invoice (AR)</option>
+        <option value="po">PO</option>
+        <option value="packing_list">Packing List</option>
+        <option value="receipt">Receipt</option>
+        <option value="bank">Bank</option>
       </select>
       <select class="input" (change)="onFilter({status: $any($event.target).value})">
         <option value="">Any Status</option><option>new</option><option>processing</option><option>ready</option><option>error</option><option>reviewed</option>

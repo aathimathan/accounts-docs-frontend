@@ -23,7 +23,7 @@ import { LucideAngularModule } from 'lucide-angular';
         <div class="flex gap-1 text-xs text-gray-500">
           <span *ngIf="b.normalized?.customer" class="badge">Cust: {{ b.normalized?.customer }}</span>
           <span *ngIf="(b.normalized?.lines?.length || 0) > 0" class="badge">Lines: {{ b.normalized?.lines?.length || 0 }}</span>
-          <span *ngIf="b.normalized?.total != null" class="badge">Total: {{ b.normalized?.total | currency:'USD' }}</span>
+          <span *ngIf="b.normalized?.total != null" class="badge">Total: {{ b.normalized?.total | currency:(b.normalized?.currency || 'USD') }}</span>
         </div>
       </div>
       <button class="btn" (click)="export()">Export to QB</button>

@@ -30,7 +30,7 @@ import { LucideAngularModule } from 'lucide-angular';
               [class.bg-blue-50]="r.id===selectedId"
               class="border-b hover:bg-gray-50 transition-colors">
             <td class="py-1.5 px-3">
-              <ng-container *ngIf="r.docType === 'Invoice'; else imageIcon">
+              <ng-container *ngIf="(r.docType || '').toLowerCase().includes('invoice'); else imageIcon">
                 <i-lucide name="file-text" class="w-4 h-4"></i-lucide>
               </ng-container>
               <ng-template #imageIcon><i-lucide name="image" class="w-4 h-4"></i-lucide></ng-template>
