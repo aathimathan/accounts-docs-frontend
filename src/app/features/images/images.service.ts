@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
+import { forkJoin, of, throwError } from 'rxjs';
 import { HttpService } from '../../shared/services/http.service';
 import { AuditEntry, ImageBundle, ImageRow, NormalizedDoc } from '../../shared/models/image';
 
@@ -28,6 +29,22 @@ export class ImagesService {
     }
 
     deleteMany(ids: string[]) {
-        return this.http.post<{ deleted: number }>(`/images/delete`, { ids });
+        // Prefer backend bulk endpoint; if missing (404), fall back to individual deletes
+        return this.http.post<{ deleted: number }>(`/images/delete`, { ids }).pipe(
+            catchError(err => {
+                if (err?.status === 404) {
+                    if (!ids?.length) return of({ deleted: 0 });
+                    return forkJoin(
+                        ids.map(id => this.deleteOne(id).pipe(
+                            map(() => 1),
+                            catchError(() => of(0))
+                        ))
+                    ).pipe(
+                        map(results => ({ deleted: results.reduce((a, b) => a + b, 0) }))
+                    );
+                }
+                return throwError(() => err);
+            })
+        );
     }
 }
